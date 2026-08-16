@@ -932,6 +932,7 @@ import {
     state.ui.lastDeckId = d.id;
     save();
 
+    const studyMode = routeData.studyMode || 'srs';
     const cards = deckCards(deckId);
     const due = dueCards(deckId).length;
     const learning = cards.filter(c => c.srs.status === 'learning').length;
@@ -942,20 +943,20 @@ import {
       <div class="page">
 
         <div class="segmented-control">
-          <button class="segmented-btn" data-action="study-deck" data-deck="${d.id}">
+          <button class="segmented-btn ${studyMode === 'all' ? 'active' : ''}" data-action="toggle-study-mode" data-mode="all">
             <span>∞ Vuốt không giới hạn</span>
-            <small>xem mọi thẻ</small>
+            <small>xem mọi thẻ (${cards.length})</small>
           </button>
-          <button class="segmented-btn active" data-action="study-deck" data-deck="${d.id}">
+          <button class="segmented-btn ${studyMode === 'srs' ? 'active' : ''}" data-action="toggle-study-mode" data-mode="srs">
             <span>⚙ Ôn tập ngắt quãng</span>
-            <small>lịch thông minh</small>
+            <small>lịch thông minh (${due} từ)</small>
           </button>
         </div>
 
         <div class="big-stat-card">
           <div class="big-stat-num">${cards.length}</div>
           <div class="big-stat-label">Tổng số từ</div>
-          <div class="ready-badge">⚡ sẵn sàng</div>
+          <div class="ready-badge">${due > 0 ? `⚡ ${due} từ đến hạn` : '✓ Đã thuộc hết'}</div>
 
           <div class="stat-cols">
             <div>
@@ -974,9 +975,9 @@ import {
         </div>
 
         <div class="study-options-card">
-          <div class="study-option-item" data-action="study-deck" data-deck="${d.id}">
+          <div class="study-option-item" data-action="study-deck" data-deck="${d.id}" data-mode="${studyMode}">
             <div class="option-icon-box yellow">🎴</div>
-            <div class="option-text">Học thẻ</div>
+            <div class="option-text">Học thẻ (${studyMode === 'all' ? 'Tất cả từ' : 'Đến hạn ôn'})</div>
             <div class="option-arrow">›</div>
           </div>
           <div class="study-option-item" data-action="start-learn" data-deck="${d.id}">
@@ -1163,40 +1164,14 @@ import {
     return `
       <div class="page page-study">
 
-        <div class="study-head">
-
-          <button
-            class="round-btn"
-            data-action="exit-study"
-          >
-            ←
-          </button>
-
-          <div class="study-head-title">
-            Flashcard
-          </div>
-
-          <button
-            class="round-btn"
-            data-action="shuffle-study"
-          >
-            ⤨
-          </button>
-
+        <div class="study-header-bar">
+          <button class="round-btn" data-action="exit-study" aria-label="Quay lại">←</button>
+          <div class="study-counter-center">${session.index + 1} / ${total}</div>
+          <div style="width: 36px"></div>
         </div>
 
-        <div class="study-progress">
-
-          <div class="progress">
-            <span
-              style="width:${pct}%"
-            ></span>
-          </div>
-
-          <span>
-            ${session.index + 1}/${total}
-          </span>
-
+        <div class="progress" style="margin-bottom: 16px;">
+          <span style="width:${pct}%"></span>
         </div>
 
         <div class="flashcard-wrap">
@@ -1256,10 +1231,6 @@ import {
 
               </div>
 
-              <div class="flip-hint">
-                <span>🔄</span> Chạm vào thẻ hoặc ấn <strong>[Space]</strong> để lật
-              </div>
-
             </div>
 
             <div class="face back">
@@ -1295,29 +1266,23 @@ import {
 
               <div class="card-main-content back-content">
 
-                <div class="back-word-row">
-                  <span class="study-word-single small-word">${esc(c.word)}</span>
-                  ${c.reading ? `<span class="study-reading-inline">【${esc(c.reading)}】</span>` : ''}
-                </div>
+                ${c.reading ? `<div class="study-reading-inline">【${esc(c.reading)}】</div>` : ''}
+                ${c.romaji ? `<div class="study-romaji-inline">${esc(c.romaji)}</div>` : ''}
 
                 <div class="study-meaning">
                   ${esc(c.meaning)}
                 </div>
 
                 ${c.example
-          ? `
+                  ? `
                       <div class="study-example-box">
                         <div class="ex-ja">${esc(c.example)}</div>
                         ${c.exampleVi ? `<div class="ex-vi">${esc(c.exampleVi)}</div>` : ''}
                       </div>
                     `
-          : ''
-        }
+                  : ''
+                }
 
-              </div>
-
-              <div class="flip-hint">
-                <span>🔄</span> Chạm để xem mặt trước
               </div>
 
             </div>
@@ -1392,45 +1357,33 @@ import {
       c.srs.intervalDays || 0;
 
     if (r === 'again') {
-
-      return i < 1
-        ? '1 phút'
-        : '10 phút';
+      return '1 phút';
     }
 
     if (r === 'hard') {
-
       return i < 1
-        ? '8 giờ'
+        ? '5 phút'
         : `${Math.max(
           1,
           Math.round(i * 1.25)
-        )
-        } ngày`;
+        )} ngày`;
     }
 
     if (r === 'good') {
-
-      return `${Math.max(
-        1,
-        Math.round(
-          i
-            ? i * 2.2
-            : 1
-        )
-      )
-        } ngày`;
+      return i < 1
+        ? '10 phút'
+        : `${Math.max(
+          1,
+          Math.round(i ? i * 2.2 : 1)
+        )} ngày`;
     }
 
-    return `${Math.max(
-      3,
-      Math.round(
-        i
-          ? i * 3.4
-          : 4
-      )
-    )
-      } ngày`;
+    return i < 1
+      ? '1 ngày'
+      : `${Math.max(
+        1,
+        Math.round(i ? i * 3.4 : 1)
+      )} ngày`;
   }
 
   function applySrs(
@@ -1516,7 +1469,7 @@ import {
 
       nextDays =
         oldI < 1
-          ? 1 / 3
+          ? 5 / 1440
           : Math.max(
             1,
             oldI * 1.25 * lapseDiscount
@@ -1559,7 +1512,7 @@ import {
 
       nextDays =
         oldI < 1
-          ? 1
+          ? 10 / 1440
           : Math.max(
             1,
             oldI * mult
@@ -1602,9 +1555,9 @@ import {
 
       nextDays =
         oldI < 1
-          ? 4
+          ? 1
           : Math.max(
-            3,
+            1,
             oldI * mult
           );
 
@@ -4594,62 +4547,7 @@ import {
 
       let isDragging = false;
 
-      if (
-        !cardEl.querySelector(
-          '.swipe-overlay.right'
-        )
-      ) {
 
-        const rightBadge =
-          document.createElement('div');
-
-        rightBadge.className =
-          'swipe-overlay right';
-
-        rightBadge.textContent =
-          '👉 ĐÃ NHỚ';
-
-        const leftBadge =
-          document.createElement('div');
-
-        leftBadge.className =
-          'swipe-overlay left';
-
-        leftBadge.textContent =
-          '👈 CHƯA NHỚ';
-
-        cardEl
-          .querySelector(
-            '.face.front'
-          )
-          ?.appendChild(
-            rightBadge.cloneNode(true)
-          );
-
-        cardEl
-          .querySelector(
-            '.face.front'
-          )
-          ?.appendChild(
-            leftBadge.cloneNode(true)
-          );
-
-        cardEl
-          .querySelector(
-            '.face.back'
-          )
-          ?.appendChild(
-            rightBadge
-          );
-
-        cardEl
-          .querySelector(
-            '.face.back'
-          )
-          ?.appendChild(
-            leftBadge
-          );
-      }
 
       const onStart =
         (clientX, clientY) => {
@@ -4831,14 +4729,7 @@ import {
           }, 180);
 
         } else {
-
-          const flipRot =
-            session.flipped
-              ? 'rotateY(180deg)'
-              : '';
-
-          cardEl.style.transform =
-            flipRot;
+          cardEl.style.transform = '';
         }
       };
 
@@ -5462,6 +5353,13 @@ import {
     }
 
     else if (
+      a === 'toggle-study-mode'
+    ) {
+      routeData.studyMode = el.dataset.mode;
+      render();
+    }
+
+    else if (
       a === 'study-deck' ||
       a === 'quick-study'
     ) {
@@ -5475,13 +5373,21 @@ import {
 
       save();
 
-      let cards =
-        dueCards(id);
+      const mode =
+        el.dataset.mode ||
+        routeData.studyMode ||
+        'srs';
 
-      if (!cards.length) {
+      let cards = [];
 
-        cards =
-          deckCards(id);
+      if (mode === 'all') {
+        cards = deckCards(id);
+      } else {
+        cards = dueCards(id);
+        if (!cards.length) {
+          showToast('🎉 Tất cả từ trong bộ thẻ đã thuộc hết! Chuyển sang "Vuốt không giới hạn" để học lại từ đầu.');
+          return;
+        }
       }
 
       startStudy(
@@ -5546,11 +5452,13 @@ import {
     ) {
 
       if (session) {
-
-        session.flipped =
-          !session.flipped;
-
-        render();
+        session.flipped = !session.flipped;
+        const cardEl = document.getElementById('flashcard');
+        if (cardEl) {
+          cardEl.classList.toggle('flipped', session.flipped);
+        } else {
+          render();
+        }
       }
     }
 
@@ -6570,11 +6478,14 @@ import {
 
         e.preventDefault();
 
-        if (!session.flipped) {
-
-          session.flipped = true;
-
-          render();
+        if (session) {
+          session.flipped = !session.flipped;
+          const cardEl = document.getElementById('flashcard');
+          if (cardEl) {
+            cardEl.classList.toggle('flipped', session.flipped);
+          } else {
+            render();
+          }
         }
 
         return;
