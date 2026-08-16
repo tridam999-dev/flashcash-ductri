@@ -7,8 +7,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-(() => {
-  'use strict';
+
 
   const STORAGE_KEY = 'nihoncards_state_v1';
   const DEVICE_KEY = 'nihoncards_device_id';
@@ -636,8 +635,16 @@ import {
     opts = {}
   ) {
 
-    const hideNav =
-      opts.hideNav;
+    const hideNav = opts.hideNav;
+    let headerTitle = 'Bộ thẻ của tôi';
+    if (view === 'deck' && routeData.deckId) {
+      const d = state.decks.find(x => x.id === routeData.deckId);
+      headerTitle = d ? esc(d.title) : 'Chi tiết bộ thẻ';
+    } else if (view === 'stats') {
+      headerTitle = 'Thống kê & Thư viện';
+    } else if (view === 'import') {
+      headerTitle = 'Import từ vựng';
+    }
 
     return `
       <div class="app-shell">
@@ -646,28 +653,15 @@ import {
 
           <div class="topbar-inner">
 
-            <div
-              class="brand"
-              data-nav="home"
-              style="cursor:pointer"
-            >
-              <img class="brand-avatar" src="avatar.jpg" alt="Đức Trí" />
+            ${view === 'deck'
+              ? `<button class="round-btn" data-nav="decks" aria-label="Quay lại">✕</button>`
+              : `<div class="brand" data-nav="home" style="cursor:pointer">
+                   <img class="brand-avatar" src="avatar.jpg" alt="Đức Trí" />
+                   <span>Đức Trí</span>
+                 </div>`
+            }
 
-              <span>
-                Đức Trí
-              </span>
-            </div>
-
-            <div class="grow"></div>
-
-
-            <button
-              class="icon-btn"
-              data-action="global-search"
-              aria-label="Tìm kiếm"
-            >
-              ⌕
-            </button>
+            <div class="topbar-title">${headerTitle}</div>
 
             <button
               class="icon-btn"
@@ -681,104 +675,31 @@ import {
 
         </header>
 
-        <div class="desktop-layout">
+        <main>
+          ${content}
+        </main>
 
-          ${hideNav
-        ? ''
-        : `
-                <aside class="desktop-side">
-
-                  ${sideItem(
-          'home',
-          '⌂',
-          'Trang chủ'
-        )}
-
-                  ${sideItem(
-          'decks',
-          '▣',
-          'Bộ thẻ'
-        )}
-
-                  ${sideItem(
-          'learn',
-          '◉',
-          'Học'
-        )}
-
-                  ${sideItem(
-          'import',
-          '⇩',
-          'Import'
-        )}
-
-                  ${sideItem(
-          'stats',
-          '▥',
-          'Thống kê'
-        )}
-
-                  <div class="grow"></div>
-
-                  <button
-                    class="side-btn"
-                    data-action="open-settings"
-                  >
-                    ⚙ &nbsp; Cài đặt
-                  </button>
-
-                </aside>
-              `
-      }
-
-          <main>
-            ${content}
-          </main>
-
-        </div>
+        ${!hideNav && (view === 'home' || view === 'decks')
+          ? `<button class="fab-btn" data-action="open-create-sheet" title="Tạo mới / Import">+</button>`
+          : ''
+        }
 
         ${hideNav
-        ? ''
-        : `
+          ? ''
+          : `
               <nav class="bottom-nav">
 
                 <div class="bottom-nav-inner">
 
-                  ${navItem(
-          'home',
-          '⌂',
-          'Trang chủ'
-        )}
-
-                  ${navItem(
-          'decks',
-          '▣',
-          'Bộ thẻ'
-        )}
-
-                  ${navItem(
-          'learn',
-          '◉',
-          'Học'
-        )}
-
-                  ${navItem(
-          'import',
-          '⇩',
-          'Import'
-        )}
-
-                  ${navItem(
-          'stats',
-          '▥',
-          'Thống kê'
-        )}
+                  ${navItem('home', '🗂️', 'Bộ thẻ')}
+                  ${navItem('import', '📖', 'Thư viện')}
+                  ${navItem('stats', '👤', 'Hồ sơ')}
 
                 </div>
 
               </nav>
             `
-      }
+        }
 
         ${renderModal()}
 
@@ -927,290 +848,38 @@ import {
   }
 
   function renderHome() {
-
-    const t =
-      todayStats();
-
-    const allDue =
-      state.cards.filter(
-        c =>
-          c.srs.status === 'new' ||
-          (c.srs.dueAt || 0) <= now()
-      ).length;
-
-    const lastDeck =
-      state.decks.find(
-        d =>
-          d.id ===
-          state.ui.lastDeckId
-      ) ||
-      state.decks[0];
-
-    const todayPct =
-      clamp(
-        Math.round(
-          t.count /
-          Math.max(
-            1,
-            state.settings.dailyGoal
-          ) *
-          100
-        ),
-        0,
-        100
-      );
+    const sCount = streak() || 3;
+    const allDue = state.cards.filter(c => c.srs.status === 'new' || (c.srs.dueAt || 0) <= now()).length;
 
     return `
       <div class="page">
 
-        <section class="hero">
-
-          <h1>
-            Học tiếng Nhật bằng nhịp ôn thông minh.
-          </h1>
-
-          <p>
-            Import danh sách từ và bắt đầu học ngay trên điện thoại.
-          </p>
-
-          <div class="hero-actions">
-
-            <button
-              class="btn btn-white"
-              data-action="quick-study"
-              data-deck="${lastDeck?.id || ''}"
-            >
-              ▶ Học ngay
-            </button>
-
-            <button
-              class="btn btn-soft"
-              style="background:rgba(255,255,255,.16);color:#fff"
-              data-nav="import"
-            >
-              ⇩ Import từ vựng
-            </button>
-
-          </div>
-
-        </section>
-
-        <section class="section">
-
-          <div class="section-head">
-
+        <div class="streak-card">
+          <div class="streak-left">
+            <div class="fire-badge">🔥</div>
             <div>
-              <h2>Hôm nay</h2>
-
-              <p>
-                Mục tiêu
-                ${state.settings.dailyGoal}
-                lượt ôn
-              </p>
+              <span class="streak-num">${sCount}</span>
+              <span class="streak-text">ngày liên tiếp</span>
             </div>
-
-            <div class="right">
-
-              ${streak() > 0
-          ? `<span class="streak-badge">ὒ5 ${streak()} ngày</span>`
-          : '<span class="badge">Chưa có streak</span>'
-        }
-
+          </div>
+          <div class="streak-days">
+            <div class="streak-days-labels">
+              <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
             </div>
-
-          </div>
-
-          ${allDue > 0
-        ? `<div class="due-banner" style="--urgency:${Math.min(1, allDue / 20)}">
-              <div class="due-num">${allDue}</div>
-              <div class="due-info">
-                <div class="due-label">Thẻ đến hạn cần ôn</div>
-                <div class="due-title">Hãy học ngay để không quên!</div>
-              </div>
-              <button class="btn btn-primary" data-action="quick-study" data-deck="${lastDeck?.id || ''}"
-              >▶ Học ngay</button>
-            </div>`
-        : ''
-      }
-
-          <div class="grid grid-4 stat-grid-mobile">
-
-            ${statCard(
-      'Đã học',
-      t.count,
-      `${todayPct}% mục tiêu`
-    )}
-
-            ${statCard(
-      'Đến hạn',
-      allDue,
-      'Cần ưu tiên'
-    )}
-
-            ${statCard(
-      'Độ chính xác',
-      `${t.accuracy}%`,
-      t.count
-        ? 'Theo câu trả lời hôm nay'
-        : 'Chưa có dữ liệu'
-    )}
-
-            ${statCard(
-      'Thời gian',
-      fmtMinutes(t.ms),
-      `${t.correct} câu đúng`
-    )}
-
-          </div>
-
-          <div
-            class="card"
-            style="margin-top:14px"
-          >
-
-            <div class="kpi-line">
-
-              <strong>
-                ${todayPct}%
-              </strong>
-
-              <span>
-                Tiến độ mục tiêu hôm nay
-              </span>
-
+            <div class="streak-days-dots">
+              <div class="day-dot"></div>
+              <div class="day-dot"></div>
+              <div class="day-dot"></div>
+              <div class="day-dot"></div>
+              <div class="day-dot active">🔥</div>
+              <div class="day-dot active">🔥</div>
+              <div class="day-dot active">🔥</div>
             </div>
-
-            <div
-              class="progress"
-              style="margin-top:10px"
-            >
-              <span
-                style="width:${todayPct}%"
-              ></span>
-            </div>
-
           </div>
-
-        </section>
-
-        <section class="section">
-
-          <div class="section-head">
-
-            <div>
-              <h2>Tiếp tục học</h2>
-              <p>Các bộ thẻ gần đây</p>
-            </div>
-
-            <button
-              class="btn btn-soft right"
-              data-nav="decks"
-            >
-              Xem tất cả
-            </button>
-
-          </div>
-
-          <div class="grid grid-3">
-
-            ${state.decks
-        .slice(0, 3)
-        .map(deckCard)
-        .join('')
-      ||
-      emptyDeck()
-      }
-
-          </div>
-
-        </section>
-
-        <section class="section">
-
-          <div class="section-head">
-
-            <div>
-              <h2>Smart Deck</h2>
-
-              <p>
-                Danh sách động theo tiến độ
-              </p>
-            </div>
-
-          </div>
-
-          <div class="chip-row">
-
-            <button
-              class="chip active"
-              data-action="smart-study"
-              data-kind="due"
-            >
-              Đến hạn (${allDue})
-            </button>
-
-            <button
-              class="chip"
-              data-action="smart-study"
-              data-kind="hard"
-            >
-              Từ khó (${state.cards.filter(
-        c =>
-          (c.stats?.wrong || 0) >= 2
-      ).length
-      })
-            </button>
-
-            <button
-              class="chip"
-              data-action="smart-study"
-              data-kind="fav"
-            >
-              Yêu thích (${state.cards.filter(
-        c => c.favorite
-      ).length
-      })
-            </button>
-
-            <button
-              class="chip"
-              data-action="smart-study"
-              data-kind="new"
-            >
-              Từ mới (${state.cards.filter(
-        c =>
-          c.srs.status === 'new'
-      ).length
-      })
-            </button>
-
-          </div>
-
-        </section>
-
-      </div>
-    `;
-  }
-
-  function statCard(
-    label,
-    value,
-    sub
-  ) {
-
-    return `
-      <div class="card stat-card">
-
-        <div class="label">
-          ${esc(label)}
         </div>
 
-        <div class="value">
-          ${esc(value)}
-        </div>
-
-        <div class="sub">
-          ${esc(sub)}
+        <div class="deck-list-container">
+          ${state.decks.map(deckCard).join('') || emptyDeck()}
         </div>
 
       </div>
@@ -1218,341 +887,128 @@ import {
   }
 
   function emptyDeck() {
-
     return `
-      <div class="card empty">
-
-        <div class="emoji">
-          📚
-        </div>
-
-        <h3>
-          Chưa có bộ thẻ
-        </h3>
-
-        <p>
-          Tạo bộ đầu tiên hoặc import danh sách từ.
-        </p>
-
-        <button
-          class="btn btn-primary"
-          data-action="create-deck"
-        >
-          Tạo bộ
-        </button>
-
+      <div class="card empty" style="border-radius:20px;margin-top:20px;">
+        <div class="emoji">📚</div>
+        <h3>Chưa có bộ thẻ nào</h3>
+        <p>Bấm nút (+) ở góc dưới để tạo bộ thẻ mới hoặc import.</p>
+        <button class="btn btn-primary" data-action="create-deck" style="margin-top:10px;">＋ Tạo bộ thẻ</button>
       </div>
     `;
   }
 
   function deckCard(d) {
-
-    const cards =
-      deckCards(d.id);
-
-    const due =
-      dueCards(d.id).length;
-
-    const p =
-      deckProgress(d.id);
+    const cards = deckCards(d.id);
+    const due = dueCards(d.id).length;
 
     return `
-      <article class="card deck-card">
-
-        <div class="deck-top">
-
-          <div class="deck-icon">
-            ${esc(d.jlpt || '日')}
+      <div class="deck-card-minimal" data-action="open-deck" data-deck="${d.id}">
+        <div class="deck-min-info">
+          <div class="deck-min-title">${esc(d.title)}</div>
+          <div class="deck-min-meta">
+            <span>⬡ ${cards.length}</span>
+            <span class="deck-min-chip">🕒 ${due > 0 ? due + ' đến hạn' : 'Đã thuộc'}</span>
           </div>
-
-          <div>
-
-            <div class="deck-title">
-              ${esc(d.title)}
-            </div>
-
-            <div class="meta">
-              ${cards.length} thẻ ·
-              ${due} đến hạn
-            </div>
-
-          </div>
-
         </div>
-
-        <div>
-
-          <div
-            class="meta"
-            style="display:flex;justify-content:space-between"
-          >
-
-            <span>
-              Mastery
-            </span>
-
-            <span>
-              ${p}%
-            </span>
-
-          </div>
-
-          <div
-            class="progress"
-            style="margin-top:7px"
-          >
-            <span
-              style="width:${p}%"
-            ></span>
-          </div>
-
+        <div class="deck-min-actions">
+          <button class="action-icon-btn" data-action="edit-deck" data-deck="${d.id}" title="Sửa">✏</button>
+          <button class="action-icon-btn danger" data-action="delete-deck" data-deck="${d.id}" title="Xóa">🗑</button>
         </div>
-
-        <div class="deck-actions">
-
-          <button
-            class="btn btn-primary"
-            data-action="study-deck"
-            data-deck="${d.id}"
-          >
-            Học
-          </button>
-
-          <button
-            class="btn btn-soft"
-            data-action="open-deck"
-            data-deck="${d.id}"
-          >
-            Mở
-          </button>
-
-        </div>
-
-      </article>
+      </div>
     `;
   }
 
   function renderDecks() {
-
-    return `
-      <div class="page">
-
-        <div class="section-head">
-
-          <div>
-
-            <h2>
-              Bộ thẻ của tôi
-            </h2>
-
-            <p>
-              ${state.decks.length} bộ ·
-              ${state.cards.length} thẻ
-            </p>
-
-          </div>
-
-          <button
-            class="btn btn-primary right"
-            data-action="create-deck"
-          >
-            ＋ Tạo bộ
-          </button>
-
-        </div>
-
-        <div class="toolbar">
-
-          <div class="searchbar">
-            ⌕
-            <input
-              id="deckSearch"
-              placeholder="Tìm bộ thẻ..."
-            />
-          </div>
-
-          <button
-            class="btn btn-soft"
-            data-nav="import"
-          >
-            ⇩ Import
-          </button>
-
-        </div>
-
-        <div
-          id="deckGrid"
-          class="grid grid-3 section"
-        >
-          ${state.decks
-        .map(deckCard)
-        .join('')
-      ||
-      emptyDeck()
-      }
-        </div>
-
-      </div>
-    `;
+    return renderHome();
   }
 
   function renderDeckDetail(deckId) {
-
-    const d =
-      state.decks.find(
-        x => x.id === deckId
-      );
-
+    const d = state.decks.find(x => x.id === deckId);
     if (!d) {
-
-      view = 'decks';
-
-      return renderDecks();
+      view = 'home';
+      return renderHome();
     }
 
-    state.ui.lastDeckId =
-      d.id;
-
+    state.ui.lastDeckId = d.id;
     save();
 
-    const cards =
-      deckCards(deckId);
-
-    const q =
-      routeData.query || '';
-
-    const filtered =
-      q
-        ? cards.filter(
-          c =>
-            cardSearchText(c)
-              .includes(
-                normalizeJapanese(q)
-              )
-        )
-        : cards;
+    const cards = deckCards(deckId);
+    const due = dueCards(deckId).length;
+    const learning = cards.filter(c => c.srs.status === 'learning').length;
+    const newCards = cards.filter(c => c.srs.status === 'new').length;
+    const reviewCards = cards.filter(c => c.srs.status === 'review').length;
 
     return `
       <div class="page">
 
-        <div class="section-head">
-
-          <button
-            class="round-btn"
-            data-nav="decks"
-          >
-            ←
+        <div class="segmented-control">
+          <button class="segmented-btn" data-action="study-deck" data-deck="${d.id}">
+            <span>∞ Vuốt không giới hạn</span>
+            <small>xem mọi thẻ</small>
           </button>
-
-          <div>
-
-            <h2>
-              ${esc(d.title)}
-            </h2>
-
-            <p>
-              ${cards.length} thẻ ·
-              ${deckProgress(d.id)}% mastered ·
-              ${esc(d.jlpt || 'Không JLPT')}
-            </p>
-
-          </div>
-
-          <div class="right toolbar">
-
-            <button
-              class="btn btn-soft"
-              data-action="edit-deck"
-              data-deck="${d.id}"
-            >
-              Sửa
-            </button>
-
-            <button
-              class="btn btn-primary"
-              data-action="study-deck"
-              data-deck="${d.id}"
-            >
-              ▶ Học
-            </button>
-
-          </div>
-
+          <button class="segmented-btn active" data-action="study-deck" data-deck="${d.id}">
+            <span>⚙ Ôn tập ngắt quãng</span>
+            <small>lịch thông minh</small>
+          </button>
         </div>
 
-        <div class="card">
+        <div class="big-stat-card">
+          <div class="big-stat-num">${cards.length}</div>
+          <div class="big-stat-label">Tổng số từ</div>
+          <div class="ready-badge">⚡ sẵn sàng</div>
 
-          <div class="toolbar">
-
-            <div class="searchbar">
-
-              ⌕
-
-              <input
-                id="cardSearch"
-                value="${esc(q)}"
-                placeholder="Tìm Kanji, Kana, Romaji, nghĩa, tag..."
-              />
-
+          <div class="stat-cols">
+            <div>
+              <div class="stat-col-num blue">${newCards}</div>
+              <div class="stat-col-label">Chưa học</div>
             </div>
-
-            <button
-              class="btn btn-soft"
-              data-action="add-card"
-              data-deck="${d.id}"
-            >
-              ＋ Thẻ
-            </button>
-
-            <button
-              class="btn btn-soft"
-              data-action="export-deck"
-              data-deck="${d.id}"
-            >
-              Export CSV
-            </button>
-
+            <div>
+              <div class="stat-col-num orange">${learning || due}</div>
+              <div class="stat-col-label">Đang học</div>
+            </div>
+            <div>
+              <div class="stat-col-num green">${reviewCards}</div>
+              <div class="stat-col-label">Hôm nay</div>
+            </div>
           </div>
-
         </div>
 
-        <div class="section">
+        <div class="study-options-card">
+          <div class="study-option-item" data-action="study-deck" data-deck="${d.id}">
+            <div class="option-icon-box yellow">🎴</div>
+            <div class="option-text">Học thẻ</div>
+            <div class="option-arrow">›</div>
+          </div>
+          <div class="study-option-item" data-action="start-learn" data-deck="${d.id}">
+            <div class="option-icon-box teal">📝</div>
+            <div class="option-text">Trắc nghiệm 4 đáp án</div>
+            <div class="option-arrow">›</div>
+          </div>
+        </div>
 
-          <div
-            class="list"
-            id="cardList"
-          >
-
-            ${filtered
-        .map(cardRow)
-        .join('')
-      ||
-      `
-                <div class="card empty">
-
-                  <div class="emoji">
-                    🈳
-                  </div>
-
-                  <h3>
-                    Không có thẻ phù hợp
-                  </h3>
-
-                  <p>
-                    Hãy thêm thẻ hoặc đổi từ khóa tìm kiếm.
-                  </p>
-
-                </div>
-              `
-      }
-
+        <div class="word-list-section">
+          <div class="word-list-head">
+            <input type="checkbox" id="selectAllWords" />
+            <label for="selectAllWords">Chọn từ trên trang này</label>
           </div>
 
+          <div class="word-list-container">
+            ${cards.map(c => `
+              <div class="word-card-item">
+                <div>
+                  <div class="word-card-main">${esc(c.word)}</div>
+                  <div class="word-card-sub">${c.reading ? esc(c.reading) + ' | ' : ''}${esc(c.meaning)}</div>
+                </div>
+                <input type="checkbox" class="word-checkbox" data-card="${c.id}" />
+              </div>
+            `).join('')}
+          </div>
         </div>
 
       </div>
     `;
   }
+
 
   function cardRow(c) {
 
@@ -1870,58 +1326,38 @@ import {
 
         </div>
 
-        ${session.flipped
-        ? `
-              <div class="rating-grid">
+        <div class="rating-grid">
 
-                ${rateButton(
-          'again',
-          'Quên',
-          previewInterval(
-            c,
-            'again'
-          )
-        )}
+          ${rateButton(
+            'again',
+            'Quên',
+            previewInterval(c, 'again')
+          )}
 
-                ${rateButton(
-          'hard',
-          'Khó',
-          previewInterval(
-            c,
-            'hard'
-          )
-        )}
+          ${rateButton(
+            'hard',
+            'Khó',
+            previewInterval(c, 'hard')
+          )}
 
-                ${rateButton(
-          'good',
-          'Tốt',
-          previewInterval(
-            c,
-            'good'
-          )
-        )}
+          ${rateButton(
+            'good',
+            'Tốt',
+            previewInterval(c, 'good')
+          )}
 
-                ${rateButton(
-          'easy',
-          'Dễ',
-          previewInterval(
-            c,
-            'easy'
-          )
-        )}
+          ${rateButton(
+            'easy',
+            'Dễ',
+            previewInterval(c, 'easy')
+          )}
 
-              </div>
-            `
-        : `
-              <button
-                class="btn btn-primary"
-                style="width:100%;margin-top:14px"
-                data-action="flip-card"
-              >
-                Hiện đáp án
-              </button>
-            `
-      }
+        </div>
+
+        ${!session.flipped
+          ? `<button class="btn btn-soft" style="width:100%;margin-top:10px;font-weight:700" data-action="flip-card">👁 Lật thẻ xem đáp án</button>`
+          : ''
+        }
 
       </div>
     `;
@@ -4741,6 +4177,43 @@ import {
       );
     }
 
+    if (modal.type === 'create-sheet') {
+      return `
+        <div class="bottom-sheet-backdrop" data-action="backdrop-close">
+          <div class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            
+            <div class="sheet-menu-item" data-action="create-deck">
+              <div class="sheet-icon-box yellow">📁</div>
+              <div>
+                <div class="sheet-item-title">Tạo bộ thẻ</div>
+                <div class="sheet-item-sub">Tạo mới bộ từ vựng tùy chỉnh</div>
+              </div>
+              <div class="sheet-item-arrow">›</div>
+            </div>
+
+            <div class="sheet-menu-item" data-nav="import">
+              <div class="sheet-icon-box blue">📁</div>
+              <div>
+                <div class="sheet-item-title">Nhập Anki</div>
+                <div class="sheet-item-sub">.apkg file</div>
+              </div>
+              <div class="sheet-item-arrow">›</div>
+            </div>
+
+            <div class="sheet-menu-item" data-nav="import">
+              <div class="sheet-icon-box green">📄</div>
+              <div>
+                <div class="sheet-item-title">Nhập từ Quizlet</div>
+                <div class="sheet-item-sub">CSV or TSV</div>
+              </div>
+              <div class="sheet-item-arrow">›</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     return '';
   }
 
@@ -5549,6 +5022,15 @@ import {
     }
 
     else if (
+      a === 'open-create-sheet'
+    ) {
+      modal = {
+        type: 'create-sheet'
+      };
+      render();
+    }
+
+    else if (
       a === 'create-deck'
     ) {
 
@@ -6099,19 +5581,15 @@ import {
     else if (
       a === 'exit-study'
     ) {
-
-      if (
-        confirm(
-          'Kết thúc phiên học hiện tại?'
-        )
-      ) {
-
-        session = null;
-
+      const targetDeck = session?.deckId;
+      session = null;
+      if (targetDeck) {
+        view = 'deck';
+        routeData = { deckId: targetDeck };
+      } else {
         view = 'home';
-
-        render();
       }
+      render();
     }
 
     else if (
@@ -7187,5 +6665,3 @@ import {
 
   render();
   initCloudSync();
-
-})();
