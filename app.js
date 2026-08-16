@@ -2998,171 +2998,150 @@ import {
       }
     }
 
-    const lines =
-      src
-        .split(/\r?\n/)
-        .map(
-          s => s.trim()
-        )
-        .filter(Boolean);
+    const lines = src
+      .split(/\r?\n/)
+      .map(s => s.trim())
+      .filter(Boolean);
 
-    const chooseDelimiter =
-      line => {
+    const isHanVietText = s => {
+      if (!s) return false;
+      const clean = s.trim();
+      if (clean !== clean.toUpperCase()) return false;
+      return /^[A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴ\s,\/]+$/.test(clean) && /[A-ZÀ-Ỹ]/.test(clean);
+    };
 
-        if (mode === 'pipe') {
-          return '|';
-        }
+    const isRomajiText = s => {
+      if (!s) return false;
+      const clean = s.trim().replace(/\[.*?\]/g, '').trim();
+      return /^[a-zA-Z\s'-\.\/~]+$/.test(clean) && clean.length > 0;
+    };
 
-        if (mode === 'tab') {
-          return '\t';
-        }
-
-        if (mode === 'comma') {
-          return ',';
-        }
-
-        if (mode === 'dash') {
-          return /\s[-–—]\s/;
-        }
-
-        if (line.includes('|')) {
-          return '|';
-        }
-
-        if (line.includes('\t')) {
-          return '\t';
-        }
-
-        if (
-          line.split(',').length >= 3
-        ) {
-          return ',';
-        }
-
-        if (
-          /\s[-–—]\s/.test(line)
-        ) {
-          return /\s[-–—]\s/;
-        }
-
-        if (line.includes(';')) {
-          return ';';
-        }
-
-        return null;
-      };
+    const isJapanese = s => {
+      if (!s) return false;
+      return /[\u3040-\u30ff\u4e00-\u9faf]/.test(s);
+    };
 
     const rows = [];
 
-    for (
-      let i = 0;
-      i < lines.length;
-      i++
-    ) {
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      if (!line) continue;
 
-      const line =
-        lines[i];
+      line = line.replace(/^(\d+[\.\)\/]\s*|[-•*]\s*)/, '').trim();
+      if (!line) continue;
 
-      const del =
-        chooseDelimiter(line);
+      let word = '';
+      let reading = '';
+      let romaji = '';
+      let meaning = '';
+      let hanViet = '';
 
-      if (
-        !del &&
-        i + 1 < lines.length &&
-        !chooseDelimiter(
-          lines[i + 1]
-        )
-      ) {
+      if (line.includes('|')) {
+        const parts = line.split('|').map(s => s.trim()).filter(Boolean);
+        const p0 = parts[0] || '';
+        const p0Sub = p0.split(/\t|\s{2,}/).map(s => s.trim()).filter(Boolean);
 
-        rows.push({
-          word: line,
-          reading: '',
-          romaji: '',
-          meaning: lines[++i],
-          jlpt: '',
-          pos: '',
-          example: '',
-          exampleVi: '',
-          tags: []
-        });
-
-        continue;
-      }
-
-      const p =
-        del
-          ? line
-            .split(del)
-            .map(
-              s => s.trim()
-            )
-          : [line];
-
-      if (p.length >= 2) {
-
-        let word =
-          p[0] || '';
-
-        let reading = '';
-
-        let romaji = '';
-
-        let meaning = '';
-
-        let jlpt = '';
-
-        if (p.length === 2) {
-
-          meaning =
-            p[1];
+        if (p0Sub.length >= 2) {
+          word = p0Sub[0];
+          reading = p0Sub.slice(1).join(' ');
+        } else {
+          word = p0;
         }
 
-        else if (p.length === 3) {
+        const remaining = parts.slice(1);
+        const meaningParts = [];
 
-          reading =
-            p[1];
-
-          meaning =
-            p[2];
-        }
-
-        else {
-
-          reading =
-            p[1];
-
-          if (
-            /^[a-zA-Z\s'-]+$/
-              .test(
-                p[2] || ''
-              )
-          ) {
-
-            romaji =
-              p[2];
-
-            meaning =
-              p[3] || '';
-
-            jlpt =
-              p[4] || '';
-
+        for (const pt of remaining) {
+          if (isHanVietText(pt) && !hanViet) {
+            hanViet = pt;
+          } else if (isRomajiText(pt) && !romaji && !pt.includes('=')) {
+            romaji = pt;
+          } else if (!reading && isJapanese(pt)) {
+            reading = pt;
           } else {
-
-            meaning =
-              p[2] || '';
-
-            jlpt =
-              p[3] || '';
+            meaningParts.push(pt);
           }
         }
+        meaning = meaningParts.join(' | ');
 
+      } else if (line.includes('\t') || /\s{2,}/.test(line)) {
+        const parts = line.split(/\t|\s{2,}/).map(s => s.trim()).filter(Boolean);
+
+        if (parts.length >= 4) {
+          word = parts[0];
+          reading = parts[1];
+          if (isHanVietText(parts[2])) {
+            hanViet = parts[2];
+            if (isRomajiText(parts[3])) {
+              romaji = parts[3];
+              meaning = parts.slice(4).join(' ');
+            } else {
+              meaning = parts.slice(3).join(' ');
+            }
+          } else if (isRomajiText(parts[2])) {
+            romaji = parts[2];
+            meaning = parts.slice(3).join(' ');
+          } else {
+            meaning = parts.slice(2).join(' ');
+          }
+        } else if (parts.length === 3) {
+          word = parts[0];
+          if (isJapanese(parts[1])) {
+            reading = parts[1];
+            meaning = parts[2];
+          } else {
+            meaning = parts.slice(1).join(' ');
+          }
+        } else if (parts.length === 2) {
+          word = parts[0];
+          meaning = parts[1];
+        } else {
+          word = line;
+        }
+
+      } else if (line.includes(',') || /\s[-–—]\s/.test(line)) {
+        const del = line.includes(',') ? ',' : /\s[-–—]\s/;
+        const parts = line.split(del).map(s => s.trim()).filter(Boolean);
+        word = parts[0] || '';
+        if (parts.length === 2) {
+          meaning = parts[1];
+        } else if (parts.length >= 3) {
+          if (isJapanese(parts[1])) {
+            reading = parts[1];
+            meaning = parts.slice(2).join(', ');
+          } else {
+            meaning = parts.slice(1).join(', ');
+          }
+        }
+      } else {
+        if (i + 1 < lines.length) {
+          word = line;
+          meaning = lines[++i];
+        } else {
+          word = line;
+        }
+      }
+
+      if (!reading && word.includes('(') && word.includes(')')) {
+        const m = word.match(/^(.*?)\s*[\(\（](.*?)[\)\］]/);
+        if (m) {
+          word = m[1].trim();
+          reading = m[2].trim();
+        }
+      }
+
+      let finalRomaji = romaji;
+      if (hanViet) {
+        finalRomaji = romaji ? `${hanViet} • ${romaji}` : hanViet;
+      }
+
+      if (word) {
         rows.push({
           word,
           reading,
-          romaji,
+          romaji: finalRomaji,
           meaning,
-          jlpt,
+          jlpt: '',
           pos: '',
           example: '',
           exampleVi: '',
@@ -3171,11 +3150,7 @@ import {
       }
     }
 
-    return rows.filter(
-      x =>
-        x.word &&
-        x.meaning
-    );
+    return rows.filter(x => x.word);
   }
 
   function renderStats() {
