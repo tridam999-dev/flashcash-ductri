@@ -716,6 +716,7 @@ a {
   will-change: transform;
   cursor: pointer;
   border-radius: 24px;
+  touch-action: none;
 }
 
 .flashcard.flipped {
@@ -787,14 +788,14 @@ a {
   font-size: clamp(38px, 12vw, 70px);
   font-weight: 900;
   letter-spacing: -0.5px;
-  white-space: nowrap !important;
-  word-break: keep-all !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
   writing-mode: horizontal-tb !important;
   display: block !important;
   width: 100% !important;
   text-align: center !important;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
   color: #fff;
 }
 

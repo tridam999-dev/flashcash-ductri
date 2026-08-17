@@ -4522,12 +4522,16 @@ import {
 
       let isDragging = false;
 
+      let isHorizontalSwipe = false;
+
 
 
       const onStart =
         (clientX, clientY) => {
 
           isDragging = true;
+
+          isHorizontalSwipe = false;
 
           startX = clientX;
 
@@ -4559,12 +4563,17 @@ import {
           const deltaY =
             currentY - startY;
 
-          if (
-            Math.abs(deltaY) >
-            Math.abs(deltaX) * 1.5 &&
-            Math.abs(deltaX) < 15
-          ) {
-            return;
+          if (!isHorizontalSwipe) {
+            if (
+              Math.abs(deltaY) >
+              Math.abs(deltaX) * 1.5 &&
+              Math.abs(deltaX) < 15
+            ) {
+              return;
+            }
+            if (Math.abs(deltaX) >= 10) {
+              isHorizontalSwipe = true;
+            }
           }
 
           const rotate =
@@ -4733,13 +4742,17 @@ import {
             e.touches.length === 1
           ) {
 
+            if (isHorizontalSwipe) {
+              e.preventDefault();
+            }
+
             onMove(
               e.touches[0].clientX,
               e.touches[0].clientY
             );
           }
         },
-        { passive: true }
+        { passive: false }
       );
 
       cardEl.addEventListener(
