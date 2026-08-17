@@ -724,6 +724,60 @@ a {
   -webkit-transform: rotateY(180deg);
 }
 
+.flashcard.swiping {
+  transition: none !important;
+}
+
+.swipe-overlay {
+  position: absolute;
+  top: 16px;
+  z-index: 10;
+  padding: 8px 18px;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.swipe-overlay.right {
+  right: 16px;
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--good);
+  border: 2px solid var(--good);
+}
+
+.swipe-overlay.left {
+  left: 16px;
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+  border: 2px solid var(--danger);
+}
+
+@keyframes swipeOutRight {
+  to {
+    transform: translateX(120vw) rotate(20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes swipeOutLeft {
+  to {
+    transform: translateX(-120vw) rotate(-20deg);
+    opacity: 0;
+  }
+}
+
+.flashcard.swipe-out-right {
+  animation: swipeOutRight 0.3s ease-in forwards;
+}
+
+.flashcard.swipe-out-left {
+  animation: swipeOutLeft 0.3s ease-in forwards;
+}
+
 .face {
   position: absolute;
   inset: 0;

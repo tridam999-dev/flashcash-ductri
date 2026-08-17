@@ -1287,6 +1287,9 @@ import {
 
             </div>
 
+            <div class="swipe-overlay right">✓ Nhớ</div>
+            <div class="swipe-overlay left">✗ Quên</div>
+
           </div>
 
         </div>
@@ -1601,24 +1604,41 @@ import {
       c.stats.lastAnswer =
         'wrong';
 
-      const offset =
-        (c.srs.lapses >= 3) ? 3 : 5;
+      const repeatCount =
+        state.logs.filter(
+          l =>
+            l.cardId === c.id &&
+            l.rating === 'again' &&
+            l.at >= session.startedAt
+        ).length;
 
-      const targetIndex =
-        Math.min(
-          session.cards.length,
-          session.index + offset
+      if (repeatCount < 3) {
+
+        const remaining =
+          session.cards.length -
+          session.index - 1;
+
+        const offset =
+          Math.max(
+            8,
+            Math.min(
+              remaining,
+              Math.floor(remaining * 0.6) + 3
+            )
+          );
+
+        const targetIndex =
+          Math.min(
+            session.cards.length,
+            session.index + offset
+          );
+
+        session.cards.splice(
+          targetIndex,
+          0,
+          c
         );
-
-      session.cards.splice(
-        targetIndex,
-        0,
-        c
-      );
-
-      showToast(
-        'Thẻ lặp lại trong phiên này để ôn!'
-      );
+      }
 
     } else {
 
