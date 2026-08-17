@@ -2794,9 +2794,9 @@ import {
                     <thead>
 
                       <tr>
-                        <th>Japanese</th>
-                        <th>Reading</th>
-                        <th>Romaji</th>
+                        <th>Kanji</th>
+                        <th>Hiragana</th>
+                        <th>Âm Hán</th>
                         <th>Nghĩa</th>
                         <th>JLPT</th>
                         <th></th>
@@ -3142,11 +3142,28 @@ import {
         }
       }
 
-      if (!reading && word.includes('(') && word.includes(')')) {
-        const m = word.match(/^(.*?)\s*[\(\（](.*?)[\)\］]/);
+      if (!reading && (word.includes('(') || word.includes('\uff08')) && (word.includes(')') || word.includes('\uff09'))) {
+        const m = word.match(/^(.*?)\s*[\(\（](.*?)[\)\）]/);
         if (m) {
           word = m[1].trim();
           reading = m[2].trim();
+        }
+      }
+
+      if (!hanViet) {
+        const hvFromWord = word.match(/\[([A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴ\s,\/]+)\]/i);
+        if (hvFromWord && hvFromWord[1].trim().toUpperCase() === hvFromWord[1].trim()) {
+          hanViet = hvFromWord[1].trim();
+          word = word.replace(hvFromWord[0], '').trim();
+        }
+      }
+
+      if (!hanViet) {
+        const hvFromMeaning = meaning.match(/\[([A-ZÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴ\s,\/]+)\]/i);
+        if (hvFromMeaning && hvFromMeaning[1].trim().toUpperCase() === hvFromMeaning[1].trim()) {
+          hanViet = hvFromMeaning[1].trim();
+          meaning = meaning.replace(hvFromMeaning[0], '').trim();
+          meaning = meaning.replace(/^\s*[-–—]\s*/, '').trim();
         }
       }
 
