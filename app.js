@@ -3143,10 +3143,14 @@ import {
       }
 
       if (!reading && (word.includes('(') || word.includes('\uff08')) && (word.includes(')') || word.includes('\uff09'))) {
-        const m = word.match(/^(.*?)\s*[\(\（](.*?)[\)\）]/);
+        const m = word.match(/^(.*?)\s*[\(\（](.*?)[\)\）]\s*(.*?)$/);
         if (m) {
           word = m[1].trim();
           reading = m[2].trim();
+          const afterParen = (m[3] || '').trim();
+          if (afterParen) {
+            word = (word + ' ' + afterParen).trim();
+          }
         }
       }
 
@@ -5952,7 +5956,7 @@ import {
       a === 'commit-import'
     ) {
 
-      const deckId =
+      let deckId =
         document
           .getElementById(
             'importDeck'
@@ -5963,11 +5967,22 @@ import {
 
       if (!deckId) {
 
-        showToast(
-          'Hãy tạo bộ thẻ trước.'
-        );
+        const newDeckId = uid('deck');
+        const now_ = new Date();
+        const datePart =
+          `${now_.getDate()}/${now_.getMonth() + 1}/${now_.getFullYear()}`;
 
-        return;
+        state.decks.push({
+          id: newDeckId,
+          title: `Import ${datePart}`,
+          description: '',
+          jlpt: '',
+          createdAt: now(),
+          updatedAt: now()
+        });
+
+        deckId = newDeckId;
+        state.ui.lastDeckId = newDeckId;
       }
 
       let added = 0;
