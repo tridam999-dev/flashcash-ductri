@@ -359,7 +359,8 @@ import {
         dailyGoal: 20,
         newPerDay: 20,
         audioAutoplay: false,
-        swipe: true
+        swipe: true,
+        autoShuffle: true
       },
 
       decks: [
@@ -1098,7 +1099,7 @@ import {
       return;
     }
 
-    const ordered =
+    let ordered =
       [...cards].sort(
         (a, b) =>
           (
@@ -1111,6 +1112,11 @@ import {
             (a.stats?.wrong || 0)
           )
       );
+
+    // Auto-shuffle cards if enabled in settings
+    if (state.settings.autoShuffle) {
+      ordered = shuffle(ordered);
+    }
 
     session = {
       id: uid('session'),
@@ -1692,6 +1698,9 @@ import {
     const ratings =
       session.ratings;
 
+    const sessionDeckId =
+      session.deckId;
+
     state.sessions.push({
       id: session.id,
       mode: 'study',
@@ -1704,6 +1713,14 @@ import {
           x => x !== 'again'
         ).length
     });
+
+    // Auto-shuffle deck cards after study session for next time
+    if (state.settings.autoShuffle && sessionDeckId) {
+      const dCards = state.cards.filter(c => c.deckId === sessionDeckId);
+      const shuffled = shuffle(dCards);
+      const otherCards = state.cards.filter(c => c.deckId !== sessionDeckId);
+      state.cards = [...otherCards, ...shuffled];
+    }
 
     save();
 
@@ -2031,6 +2048,11 @@ import {
         count
       );
 
+    // Auto-shuffle cards if enabled
+    if (state.settings.autoShuffle) {
+      cards = shuffle(cards);
+    }
+
     if (cards.length < 2) {
 
       showToast(
@@ -2313,6 +2335,10 @@ import {
     const ended =
       now();
 
+    // Get deck info before clearing learn state
+    const learnCards = learn.cards;
+    const learnDeckIds = [...new Set(learnCards.map(c => c.deckId))];
+
     state.sessions.push({
       id: uid('learn'),
       mode: 'learn',
@@ -2321,6 +2347,16 @@ import {
       count: learn.cards.length,
       correct: learn.score
     });
+
+    // Auto-shuffle deck cards after learn session for next time
+    if (state.settings.autoShuffle) {
+      learnDeckIds.forEach(dId => {
+        const dCards = state.cards.filter(c => c.deckId === dId);
+        const shuffled = shuffle(dCards);
+        const otherCards = state.cards.filter(c => c.deckId !== dId);
+        state.cards = [...otherCards, ...shuffled];
+      });
+    }
 
     save();
 
@@ -3664,6 +3700,41 @@ import {
         }
                 >
                   Bật
+                </option>
+
+              </select>
+
+            </div>
+
+            <div class="field">
+
+              <label>
+                Tự đảo thẻ sau mỗi lần học
+              </label>
+
+              <select
+                id="settingAutoShuffle"
+                class="select"
+              >
+
+                <option
+                  value="true"
+                  ${state.settings.autoShuffle
+          ? 'selected'
+          : ''
+        }
+                >
+                  Bật
+                </option>
+
+                <option
+                  value="false"
+                  ${!state.settings.autoShuffle
+          ? 'selected'
+          : ''
+        }
+                >
+                  Tắt
                 </option>
 
               </select>
@@ -6173,6 +6244,14 @@ import {
         document
           .getElementById(
             'settingRomaji'
+          )
+          .value ===
+        'true';
+
+      state.settings.autoShuffle =
+        document
+          .getElementById(
+            'settingAutoShuffle'
           )
           .value ===
         'true';
