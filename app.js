@@ -448,19 +448,6 @@ import {
   let editingComposition = false;
 
   let syncTimer = null;
-  let _saveTimer = null;
-
-  const MAX_LOGS = 2000;
-  const MAX_SESSIONS = 200;
-
-  function trimLogs() {
-    if (state.logs && state.logs.length > MAX_LOGS) {
-      state.logs = state.logs.slice(-MAX_LOGS);
-    }
-    if (state.sessions && state.sessions.length > MAX_SESSIONS) {
-      state.sessions = state.sessions.slice(-MAX_SESSIONS);
-    }
-  }
 
   function syncToFirebase() {
     clearTimeout(syncTimer);
@@ -481,29 +468,17 @@ import {
       } catch (err) {
         console.warn("Firebase Firestore sync:", err);
       }
-    }, 5000);
+    }, 300);
   }
 
   function save() {
-    trimLogs();
+
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify(state)
     );
 
     syncToFirebase();
-  }
-
-  // Lightweight save for study mode: debounce to reduce main thread blocking
-  function saveLite() {
-    clearTimeout(_saveTimer);
-    _saveTimer = setTimeout(() => {
-      trimLogs();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }, 1000);
-    // Firebase syncs on a much longer timer during study
-    clearTimeout(syncTimer);
-    syncTimer = setTimeout(() => syncToFirebase(), 15000);
   }
 
 
@@ -956,12 +931,10 @@ import {
     }
 
     state.ui.lastDeckId = d.id;
+    save();
 
     const studyMode = routeData.studyMode || 'srs';
     const cards = deckCards(deckId);
-    const cardLimit = routeData.cardLimit || 50;
-    const visibleCards = cards.slice(0, cardLimit);
-    const hasMoreCards = cards.length > cardLimit;
     const due = dueCards(deckId).length;
     const learning = cards.filter(c => c.srs.status === 'learning').length;
     const newCards = cards.filter(c => c.srs.status === 'new').length;
@@ -1022,7 +995,7 @@ import {
           </div>
 
           <div class="word-list-container">
-            ${visibleCards.map(c => `
+            ${cards.map(c => `
               <div class="word-card-item">
                 <div>
                   <div class="word-card-main">${esc(c.word)}</div>
@@ -1031,11 +1004,6 @@ import {
                 <input type="checkbox" class="word-checkbox" data-card="${c.id}" />
               </div>
             `).join('')}
-            ${hasMoreCards ? `
-              <button class="btn btn-soft" style="width:100%;margin-top:12px;font-size:14px" data-action="load-more-cards">
-                Xem thêm ${cards.length - cardLimit} thẻ nữa...
-              </button>
-            ` : ''}
           </div>
         </div>
 
@@ -1172,26 +1140,6 @@ import {
     return session?.cards[
       session.index
     ];
-  }
-
-  // Partial DOM update during study - only replace <main> content, not entire shell
-  function renderStudyInPlace() {
-    if (!session || !session.cards.length) {
-      view = 'home';
-      render();
-      return;
-    }
-    if (session.index >= session.cards.length) {
-      completeStudy();
-      return;
-    }
-    const mainEl = document.querySelector('main');
-    if (!mainEl || view !== 'study') {
-      render();
-      return;
-    }
-    mainEl.innerHTML = renderStudy();
-    bindAfterRender();
   }
 
   function renderStudy() {
@@ -1662,10 +1610,13 @@ import {
       c.stats.lastAnswer =
         'wrong';
 
-      // Use session-local counter instead of scanning all logs (perf optimization)
-      if (!session._againCounts) session._againCounts = {};
-      const repeatCount = session._againCounts[c.id] || 0;
-      session._againCounts[c.id] = repeatCount + 1;
+      const repeatCount =
+        state.logs.filter(
+          l =>
+            l.cardId === c.id &&
+            l.rating === 'again' &&
+            l.at >= session.startedAt
+        ).length;
 
       if (repeatCount < 3) {
 
@@ -1717,7 +1668,7 @@ import {
 
     session.ratings.push(rating);
 
-    saveLite();
+    save();
 
     session.index++;
 
@@ -1731,17 +1682,11 @@ import {
       session.cards.length
     ) {
 
-      // Flush pending saves before completing study
-      clearTimeout(_saveTimer);
-      _saveTimer = null;
-      trimLogs();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-
       completeStudy();
 
     } else {
 
-      renderStudyInPlace();
+      render();
     }
   }
 
@@ -5515,13 +5460,6 @@ import {
     }
 
     else if (
-      a === 'load-more-cards'
-    ) {
-      routeData.cardLimit = (routeData.cardLimit || 50) + 50;
-      render();
-    }
-
-    else if (
       a === 'study-deck' ||
       a === 'quick-study'
     ) {
@@ -5651,13 +5589,6 @@ import {
     else if (
       a === 'exit-study'
     ) {
-      // Flush any pending saveLite before exiting study
-      if (_saveTimer) {
-        clearTimeout(_saveTimer);
-        trimLogs();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        _saveTimer = null;
-      }
       const targetDeck = session?.deckId;
       session = null;
       if (targetDeck) {

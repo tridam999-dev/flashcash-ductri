@@ -636,7 +636,6 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  contain: layout style;
 }
 
 .word-card-main {
@@ -704,7 +703,6 @@ a {
   isolation: isolate;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
-  contain: layout style;
 }
 
 .flashcard {
