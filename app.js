@@ -1127,7 +1127,10 @@ import {
       cardStartedAt: now(),
       deckId,
       ratings: [],
-      mode: 'study'
+      mode: 'study',
+      queueCount: 0,
+      cardLapses: {},
+      cardHards: {}
     };
 
     view = 'study';
@@ -1167,12 +1170,14 @@ import {
         100
       );
 
+    const queueCount = session.queueCount || 0;
+
     return `
       <div class="page page-study">
 
         <div class="study-header-bar">
           <button class="round-btn" data-action="exit-study" aria-label="Quay lại">←</button>
-          <div class="study-counter-center">${session.index + 1} / ${total}</div>
+          <div class="study-counter-center">${session.index + 1} / ${total}${queueCount > 0 ? ` <span class="queue-badge">🔄${queueCount}</span>` : ''}</div>
           <div style="width: 36px"></div>
         </div>
 
@@ -1610,41 +1615,31 @@ import {
       c.stats.lastAnswer =
         'wrong';
 
-      const repeatCount =
-        state.logs.filter(
-          l =>
-            l.cardId === c.id &&
-            l.rating === 'again' &&
-            l.at >= session.startedAt
-        ).length;
+      // === THUẬT TOÁN HÀNG ĐỢI NGẮT QUÃNG THÔNG MINH ===
+      // Dùng session-local counter thay vì scan logs
+      const sessionLapses = session.cardLapses[c.id] || 0;
+      session.cardLapses[c.id] = sessionLapses + 1;
 
-      if (repeatCount < 3) {
+      const totalLapses = c.srs.lapses || 0;
 
-        const remaining =
-          session.cards.length -
-          session.index - 1;
+      // gap = BASE_GAP * decay^n * historyPenalty
+      const BASE_GAP = 5;
+      const sessionDecay = Math.pow(0.65, sessionLapses);
+      const historyPenalty = Math.max(0.5, 1 - totalLapses * 0.05);
+      const remaining =
+        session.cards.length - session.index - 1;
 
-        const offset =
-          Math.max(
-            8,
-            Math.min(
-              remaining,
-              Math.floor(remaining * 0.6) + 3
-            )
-          );
+      let gap = Math.round(BASE_GAP * sessionDecay * historyPenalty);
+      gap = Math.max(1, Math.min(gap, remaining));
 
-        const targetIndex =
-          Math.min(
-            session.cards.length,
-            session.index + offset
-          );
-
-        session.cards.splice(
-          targetIndex,
-          0,
-          c
+      const targetIndex =
+        Math.min(
+          session.cards.length,
+          session.index + 1 + gap
         );
-      }
+
+      session.cards.splice(targetIndex, 0, c);
+      session.queueCount = (session.queueCount || 0) + 1;
 
     } else {
 
@@ -1653,6 +1648,24 @@ import {
 
       c.stats.lastAnswer =
         'correct';
+
+      if (rating === 'hard') {
+        const sessionHards = session.cardHards[c.id] || 0;
+        session.cardHards[c.id] = sessionHards + 1;
+        const remaining =
+          session.cards.length - session.index - 1;
+
+        if (sessionHards < 2 && remaining > 3) {
+          const hardGap = Math.max(5, Math.round(remaining * 0.4));
+          const targetIndex =
+            Math.min(
+              session.cards.length,
+              session.index + 1 + hardGap
+            );
+          session.cards.splice(targetIndex, 0, c);
+          session.queueCount = (session.queueCount || 0) + 1;
+        }
+      }
     }
 
     state.logs.push({
@@ -1724,9 +1737,19 @@ import {
 
     save();
 
+    // Đếm số thẻ unique và số lần lặp lại
+    const uniqueCardIds = new Set(session.cards.map(x => x.id));
+    const totalRepeats = ratings.length - uniqueCardIds.size;
+
     const summary = {
       count:
         ratings.length,
+
+      uniqueCount:
+        uniqueCardIds.size,
+
+      repeats:
+        Math.max(0, totalRepeats),
 
       accuracy:
         ratings.length
@@ -1753,7 +1776,7 @@ import {
     render();
 
     showToast(
-      `Hoàn thành ${summary.count} thẻ · ${summary.accuracy}% · ${fmtMinutes(summary.ms)}`
+      `Hoàn thành ${summary.count} thẻ${summary.repeats > 0 ? ` (🔄${summary.repeats} ôn lại)` : ''} · ${summary.accuracy}% · ${fmtMinutes(summary.ms)}`
     );
   }
 
