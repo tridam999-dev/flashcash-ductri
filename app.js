@@ -1130,7 +1130,8 @@ import {
       mode: 'study',
       queueCount: 0,
       cardLapses: {},
-      cardHards: {}
+      cardHards: {},
+      cardCorrectStreak: {}
     };
 
     view = 'study';
@@ -1615,8 +1616,10 @@ import {
       c.stats.lastAnswer =
         'wrong';
 
-      // === THUẬT TOÁN HÀNG ĐỢI NGẮT QUÃNG THÔNG MINH ===
-      // Dùng session-local counter thay vì scan logs
+      // === THUẬT TOÁN HÀNG ĐỢI NGẮT QUÃNG: HỌC TỚI KHI THUỘC ===
+      // Reset correct streak khi sai
+      session.cardCorrectStreak[c.id] = 0;
+
       const sessionLapses = session.cardLapses[c.id] || 0;
       session.cardLapses[c.id] = sessionLapses + 1;
 
@@ -1649,7 +1652,36 @@ import {
       c.stats.lastAnswer =
         'correct';
 
-      if (rating === 'hard') {
+      // === KIỂM TRA CORRECT STREAK: phải thuộc mới được bỏ qua ===
+      const curLapses = session.cardLapses[c.id] || 0;
+      const curStreak = (session.cardCorrectStreak[c.id] || 0) + 1;
+      session.cardCorrectStreak[c.id] = curStreak;
+
+      // Tính số lần đúng liên tiếp cần đạt
+      // Chưa từng sai → 1 (bỏ qua ngay)
+      // Sai 1-2 lần → cần 2 lần đúng liên tiếp
+      // Sai ≥3 lần → cần 3 lần đúng liên tiếp
+      const requiredStreak =
+        curLapses === 0 ? 1
+        : curLapses <= 2 ? 2
+        : 3;
+
+      if (curStreak < requiredStreak) {
+        // Chưa đủ streak → chèn lại vào hàng đợi với gap lớn hơn gap "quên"
+        const remaining =
+          session.cards.length - session.index - 1;
+        const streakGap = Math.max(3, Math.round(remaining * 0.35));
+        const targetIndex =
+          Math.min(
+            session.cards.length,
+            session.index + 1 + streakGap
+          );
+        session.cards.splice(targetIndex, 0, c);
+        session.queueCount = (session.queueCount || 0) + 1;
+      }
+
+      // Xử lý thêm cho rating 'hard'
+      if (rating === 'hard' && curLapses === 0) {
         const sessionHards = session.cardHards[c.id] || 0;
         session.cardHards[c.id] = sessionHards + 1;
         const remaining =
@@ -2093,7 +2125,10 @@ import {
       selected: null,
       type: 'mcq',
       startedAt: now(),
-      wrong: []
+      wrong: [],
+      cardLapses: {},
+      cardCorrectStreak: {},
+      queueCount: 0
     };
 
     view = 'learn-session';
@@ -2240,7 +2275,7 @@ import {
           </div>
 
           <span>
-            ${learn.index + 1}/${learn.cards.length}
+            ${learn.index + 1}/${learn.cards.length}${(learn.queueCount || 0) > 0 ? ` <span class="queue-badge">🔄${learn.queueCount}</span>` : ''}
           </span>
 
         </div>
@@ -5702,11 +5737,51 @@ import {
 
         learn.score++;
 
+        // === CORRECT STREAK cho Learn Mode ===
+        const curLapses = learn.cardLapses[c.id] || 0;
+        const curStreak = (learn.cardCorrectStreak[c.id] || 0) + 1;
+        learn.cardCorrectStreak[c.id] = curStreak;
+
+        const requiredStreak =
+          curLapses === 0 ? 1
+          : curLapses <= 2 ? 2
+          : 3;
+
+        if (curStreak < requiredStreak) {
+          // Chưa đủ streak → chèn lại vào hàng đợi
+          const remaining = learn.cards.length - learn.index - 1;
+          const streakGap = Math.max(2, Math.round(remaining * 0.3));
+          const targetIndex = Math.min(
+            learn.cards.length,
+            learn.index + 1 + streakGap
+          );
+          learn.cards.splice(targetIndex, 0, c);
+          learn.queueCount = (learn.queueCount || 0) + 1;
+        }
+
       } else {
 
         learn.wrong.push(
           c.id
         );
+
+        // === CHÈN LẠI THẺ SAI vào hàng đợi Learn ===
+        learn.cardCorrectStreak[c.id] = 0;
+        const sessionLapses = learn.cardLapses[c.id] || 0;
+        learn.cardLapses[c.id] = sessionLapses + 1;
+
+        const remaining = learn.cards.length - learn.index - 1;
+        const BASE_GAP = 4;
+        const decay = Math.pow(0.65, sessionLapses);
+        let gap = Math.max(1, Math.round(BASE_GAP * decay));
+        gap = Math.min(gap, remaining);
+
+        const targetIndex = Math.min(
+          learn.cards.length,
+          learn.index + 1 + gap
+        );
+        learn.cards.splice(targetIndex, 0, c);
+        learn.queueCount = (learn.queueCount || 0) + 1;
       }
 
       const ms =
@@ -5791,11 +5866,50 @@ import {
 
         learn.score++;
 
+        // === CORRECT STREAK cho Learn Mode (typing) ===
+        const curLapses = learn.cardLapses[c.id] || 0;
+        const curStreak = (learn.cardCorrectStreak[c.id] || 0) + 1;
+        learn.cardCorrectStreak[c.id] = curStreak;
+
+        const requiredStreak =
+          curLapses === 0 ? 1
+          : curLapses <= 2 ? 2
+          : 3;
+
+        if (curStreak < requiredStreak) {
+          const remaining = learn.cards.length - learn.index - 1;
+          const streakGap = Math.max(2, Math.round(remaining * 0.3));
+          const targetIndex = Math.min(
+            learn.cards.length,
+            learn.index + 1 + streakGap
+          );
+          learn.cards.splice(targetIndex, 0, c);
+          learn.queueCount = (learn.queueCount || 0) + 1;
+        }
+
       } else {
 
         learn.wrong.push(
           c.id
         );
+
+        // === CHÈN LẠI THẺ SAI vào hàng đợi Learn (typing) ===
+        learn.cardCorrectStreak[c.id] = 0;
+        const sessionLapses = learn.cardLapses[c.id] || 0;
+        learn.cardLapses[c.id] = sessionLapses + 1;
+
+        const remaining = learn.cards.length - learn.index - 1;
+        const BASE_GAP = 4;
+        const decay = Math.pow(0.65, sessionLapses);
+        let gap = Math.max(1, Math.round(BASE_GAP * decay));
+        gap = Math.min(gap, remaining);
+
+        const targetIndex = Math.min(
+          learn.cards.length,
+          learn.index + 1 + gap
+        );
+        learn.cards.splice(targetIndex, 0, c);
+        learn.queueCount = (learn.queueCount || 0) + 1;
       }
 
       state.logs.push({
