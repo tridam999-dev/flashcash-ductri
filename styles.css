@@ -332,7 +332,7 @@ a {
   max-width: 600px;
   margin: auto;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .nav-btn {
@@ -857,6 +857,39 @@ a {
   font-size: clamp(26px, 6vw, 42px);
 }
 
+/* Tự tối ưu mẫu ngữ pháp: Cố định trên 1 dòng duy nhất, kích thước to rõ, không bao giờ xuống dòng */
+.grammar-single-line,
+.study-word-single.grammar-single-line {
+  font-size: clamp(26px, 6.8vw, 48px);
+  font-weight: 900;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  letter-spacing: -0.3px !important;
+  line-height: 1.25 !important;
+  padding: 4px 10px !important;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.question-main.grammar-single-line {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  font-size: clamp(22px, 6vw, 36px) !important;
+  font-weight: 800;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-align: center !important;
+  padding: 2px 8px !important;
+}
+
 .srs-badge {
   display: inline-flex;
   align-items: center;
@@ -1114,3 +1147,105 @@ a {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.65; }
 }
+
+/* ── Cấu trúc Ngữ pháp (Grammar Flashcard) ── */
+.home-segmented-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.home-segmented-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.home-segmented-btn:hover {
+  color: var(--text);
+}
+
+.home-segmented-btn.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+/* Ví dụ ngữ cảnh mặt trước thẻ ngữ pháp */
+.grammar-front-example {
+  margin-top: 14px;
+  padding: 12px 18px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px dashed rgba(56, 189, 248, 0.45);
+  border-radius: 16px;
+  width: 95%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.grammar-front-example .ex-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 6px;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.grammar-front-example .ex-ja {
+  font-size: clamp(15px, 4.2vw, 19px);
+  color: #f8fafc;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.grammar-badge {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+
+.grammar-explain-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grammar-explain-box {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid #38bdf8;
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.grammar-explain-text {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #f1f5f9;
+}
+

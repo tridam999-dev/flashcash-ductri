@@ -289,6 +289,119 @@ import {
     ]
   ];
 
+  const sampleGrammarCards = [
+    [
+      '〜てはいけない',
+      '〜てはいけない',
+      'te wa ikenai',
+      'Không được làm gì... (biểu thị sự cấm đoán, quy định)',
+      'ngữ pháp',
+      'N5',
+      'ここでタバコを吸ってはいけません。',
+      'Không được hút thuốc ở đây.',
+      'grammar,N5'
+    ],
+    [
+      '〜たことがある',
+      '〜たことがある',
+      'ta koto ga aru',
+      'Đã từng làm gì đó... (diễn tả kinh nghiệm, trải nghiệm trong quá khứ)',
+      'ngữ pháp',
+      'N5',
+      '日本へ行ったことがありますか。',
+      'Bạn đã từng đi Nhật Bản chưa?',
+      'grammar,N5'
+    ],
+    [
+      '〜ほうがいい',
+      '〜ほうがいい',
+      'hou ga ii',
+      'Nên / Không nên làm gì... (đưa ra lời khuyên nhủ, gợi ý)',
+      'ngữ pháp',
+      'N5',
+      '毎日運動したほうがいいですよ。',
+      'Bạn nên tập thể dục mỗi ngày nhé.',
+      'grammar,N5'
+    ],
+    [
+      '〜なければならない',
+      '〜なければならない',
+      'nakereba naranai',
+      'Phải làm gì đó... (nghĩa vụ, bắt buộc phải làm)',
+      'ngữ pháp',
+      'N5',
+      '明日早く起きなければなりません。',
+      'Ngày mai tôi phải dậy sớm.',
+      'grammar,N5'
+    ],
+    [
+      '〜てもいい',
+      '〜てもいい',
+      'te mo ii',
+      'Được phép làm gì... / Làm gì cũng được (xin phép, cho phép)',
+      'ngữ pháp',
+      'N5',
+      '写真を撮ってもいいですか。',
+      'Tôi chụp ảnh có được không?',
+      'grammar,N5'
+    ],
+    [
+      '〜まえに',
+      '〜まえに',
+      'mae ni',
+      'Trước khi làm gì... (chỉ trình tự hành động)',
+      'ngữ pháp',
+      'N5',
+      '寝るまえに、本を読みます。',
+      'Trước khi đi ngủ, tôi đọc sách.',
+      'grammar,N5'
+    ],
+    [
+      '〜あとで',
+      '〜あとで',
+      'ato de',
+      'Sau khi làm gì... (chỉ trình tự hành động hoàn thành)',
+      'ngữ pháp',
+      'N5',
+      'ご飯を食べたあとで、薬を飲みます。',
+      'Sau khi ăn cơm xong, tôi uống thuốc.',
+      'grammar,N5'
+    ],
+    [
+      '〜たり〜たりする',
+      '〜たり〜たりする',
+      'tari tari suru',
+      'Nào là... nào là... / Lúc thì... lúc thì... (liệt kê hành động tiêu biểu)',
+      'ngữ pháp',
+      'N5',
+      '日曜日は買い物をしたり映画を見たりします。',
+      'Chủ nhật tôi nào là đi mua sắm, nào là xem phim.',
+      'grammar,N5'
+    ],
+    [
+      '〜ことができる',
+      '〜ことができる',
+      'koto ga dekiru',
+      'Có thể làm gì... (khả năng hoặc điều kiện cho phép)',
+      'ngữ pháp',
+      'N5',
+      '日本語を少し話すことができます。',
+      'Tôi có thể nói một chút tiếng Nhật.',
+      'grammar,N5'
+    ],
+    [
+      '〜たい / 〜たくない',
+      '〜たい',
+      'tai',
+      'Muốn / Không muốn làm gì... (nguyện vọng của bản thân)',
+      'ngữ pháp',
+      'N5',
+      '日本へ旅行に行きたいです。',
+      'Tôi muốn đi du lịch Nhật Bản.',
+      'grammar,N5'
+    ]
+  ];
+
   function makeCard(arr, deckId) {
     const [
       word,
@@ -347,7 +460,8 @@ import {
   }
 
   function initialState() {
-    const deckId = uid('deck');
+    const vocabDeckId = uid('deck_vocab');
+    const grammarDeckId = uid('deck_grammar');
 
     return {
       version: 1,
@@ -365,25 +479,37 @@ import {
 
       decks: [
         {
-          id: deckId,
+          id: vocabDeckId,
           title: 'JLPT N5 - Từ vựng cơ bản',
-          description: 'Bộ mẫu để bắt đầu học ngay.',
+          description: 'Bộ mẫu từ vựng để bắt đầu học ngay.',
           jlpt: 'N5',
+          type: 'vocab',
+          visibility: 'private',
+          createdAt: now(),
+          updatedAt: now()
+        },
+        {
+          id: grammarDeckId,
+          title: 'JLPT N5 - Mẫu cấu trúc ngữ pháp',
+          description: 'Các mẫu ngữ pháp N5 thông dụng kèm câu ví dụ ngữ cảnh.',
+          jlpt: 'N5',
+          type: 'grammar',
           visibility: 'private',
           createdAt: now(),
           updatedAt: now()
         }
       ],
 
-      cards: sampleCards.map(
-        x => makeCard(x, deckId)
-      ),
+      cards: [
+        ...sampleCards.map(x => makeCard(x, vocabDeckId)),
+        ...sampleGrammarCards.map(x => makeCard(x, grammarDeckId))
+      ],
 
       logs: [],
       sessions: [],
 
       ui: {
-        lastDeckId: deckId
+        lastDeckId: vocabDeckId
       }
     };
   }
@@ -416,6 +542,29 @@ import {
       parsed.logs ||= [];
       parsed.sessions ||= [];
       parsed.ui ||= {};
+
+      // Ensure all existing decks have a valid type
+      parsed.decks.forEach(d => {
+        if (!d.type) d.type = 'vocab';
+      });
+
+      // Ensure a grammar deck exists for existing users
+      const hasGrammarDeck = parsed.decks.some(d => d.type === 'grammar');
+      if (!hasGrammarDeck) {
+        const gDeckId = uid('deck_grammar');
+        parsed.decks.push({
+          id: gDeckId,
+          title: 'JLPT N5 - Mẫu cấu trúc ngữ pháp',
+          description: 'Các mẫu ngữ pháp N5 thông dụng kèm câu ví dụ ngữ cảnh.',
+          jlpt: 'N5',
+          type: 'grammar',
+          visibility: 'private',
+          createdAt: now(),
+          updatedAt: now()
+        });
+        const gCards = sampleGrammarCards.map(x => makeCard(x, gDeckId));
+        parsed.cards.push(...gCards);
+      }
 
       return parsed;
 
@@ -549,6 +698,22 @@ import {
       : 0;
   }
 
+  function isGrammarCard(c) {
+    if (!c) return false;
+    if (c.pos === 'ngữ pháp') return true;
+    if (c.tags && c.tags.includes('grammar')) return true;
+    const d = state.decks.find(x => x.id === c.deckId);
+    return d?.type === 'grammar';
+  }
+
+  function vocabDecks() {
+    return state.decks.filter(d => d.type !== 'grammar');
+  }
+
+  function grammarDecks() {
+    return state.decks.filter(d => d.type === 'grammar');
+  }
+
   function cardSearchText(c) {
 
     return normalizeJapanese(
@@ -641,10 +806,14 @@ import {
     if (view === 'deck' && routeData.deckId) {
       const d = state.decks.find(x => x.id === routeData.deckId);
       headerTitle = d ? esc(d.title) : 'Chi tiết bộ thẻ';
+    } else if (view === 'grammar') {
+      headerTitle = 'Cấu trúc Ngữ pháp';
+    } else if (view === 'home' || view === 'decks') {
+      headerTitle = 'Từ vựng tiếng Nhật';
     } else if (view === 'stats') {
-      headerTitle = 'Thống kê & Thư viện';
+      headerTitle = 'Thống kê & Hồ sơ';
     } else if (view === 'import') {
-      headerTitle = 'Import từ vựng';
+      headerTitle = routeData.importType === 'grammar' ? 'Nhập cấu trúc ngữ pháp' : 'Import thẻ';
     }
 
     return `
@@ -655,7 +824,7 @@ import {
           <div class="topbar-inner">
 
             ${view === 'deck'
-              ? `<button class="round-btn" data-nav="decks" aria-label="Quay lại">✕</button>`
+              ? `<button class="round-btn" data-nav="${routeData.deckType === 'grammar' ? 'grammar' : 'decks'}" aria-label="Quay lại">✕</button>`
               : `<div class="brand" data-nav="home" style="cursor:pointer">
                    <img class="brand-avatar" src="avatar.jpg" alt="Đức Trí" />
                    <span>Đức Trí</span>
@@ -680,7 +849,7 @@ import {
           ${content}
         </main>
 
-        ${!hideNav && (view === 'home' || view === 'decks')
+        ${!hideNav && (view === 'home' || view === 'decks' || view === 'grammar')
           ? `<button class="fab-btn" data-action="open-create-sheet" title="Tạo mới / Import">+</button>`
           : ''
         }
@@ -692,7 +861,8 @@ import {
 
                 <div class="bottom-nav-inner">
 
-                  ${navItem('home', '🗂️', 'Bộ thẻ')}
+                  ${navItem('home', '🗂️', 'Từ vựng')}
+                  ${navItem('grammar', '⛩️', 'Ngữ pháp')}
                   ${navItem('import', '📖', 'Thư viện')}
                   ${navItem('stats', '👤', 'Hồ sơ')}
 
@@ -716,6 +886,10 @@ import {
 
     if (view === 'home') {
       html = renderHome();
+    }
+
+    else if (view === 'grammar') {
+      html = renderGrammarHome();
     }
 
     else if (view === 'decks') {
@@ -850,10 +1024,19 @@ import {
 
   function renderHome() {
     const sCount = streak() || 3;
-    const allDue = state.cards.filter(c => c.srs.status === 'new' || (c.srs.dueAt || 0) <= now()).length;
+    const vDecks = vocabDecks();
 
     return `
       <div class="page">
+
+        <div class="home-segmented-nav">
+          <button class="home-segmented-btn active" data-nav="home">
+            <span>🗂️ Từ vựng</span>
+          </button>
+          <button class="home-segmented-btn" data-nav="grammar">
+            <span>⛩️ Ngữ pháp</span>
+          </button>
+        </div>
 
         <div class="streak-card">
           <div class="streak-left">
@@ -880,20 +1063,72 @@ import {
         </div>
 
         <div class="deck-list-container">
-          ${state.decks.map(deckCard).join('') || emptyDeck()}
+          ${vDecks.map(deckCard).join('') || emptyDeck('vocab')}
         </div>
 
       </div>
     `;
   }
 
-  function emptyDeck() {
+  function renderGrammarHome() {
+    const gDecks = grammarDecks();
+    const allGrammarCards = state.cards.filter(c => isGrammarCard(c));
+    const gDue = allGrammarCards.filter(c => c.srs.status === 'new' || (c.srs.dueAt || 0) <= now()).length;
+
+    return `
+      <div class="page">
+
+        <div class="home-segmented-nav">
+          <button class="home-segmented-btn" data-nav="home">
+            <span>🗂️ Từ vựng</span>
+          </button>
+          <button class="home-segmented-btn active" data-nav="grammar">
+            <span>⛩️ Ngữ pháp</span>
+          </button>
+        </div>
+
+        <div class="streak-card" style="margin-bottom:16px;">
+          <div class="streak-left">
+            <div class="fire-badge" style="background:rgba(168,85,247,0.2);color:#c084fc;">⛩️</div>
+            <div>
+              <span class="streak-num">${allGrammarCards.length}</span>
+              <span class="streak-text">mẫu ngữ pháp</span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;color:var(--muted);font-weight:700;">Cần học / ôn</div>
+            <div style="font-size:20px;font-weight:900;color:var(--warning);">${gDue} mẫu câu</div>
+          </div>
+        </div>
+
+        <div class="deck-list-container">
+          ${gDecks.map(deckCard).join('') || emptyDeck('grammar')}
+        </div>
+
+      </div>
+    `;
+  }
+
+  function emptyDeck(type = 'vocab') {
+    if (type === 'grammar') {
+      return `
+        <div class="card empty" style="border-radius:20px;margin-top:20px;">
+          <div class="emoji">⛩️</div>
+          <h3>Chưa có bộ ngữ pháp nào</h3>
+          <p>Tạo bộ cấu trúc ngữ pháp mới hoặc import mẫu câu có sẵn.</p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+            <button class="btn btn-primary" data-action="create-grammar-deck">＋ Tạo bộ ngữ pháp</button>
+            <button class="btn btn-soft" data-action="open-grammar-import">📥 Nhập ngữ pháp</button>
+          </div>
+        </div>
+      `;
+    }
     return `
       <div class="card empty" style="border-radius:20px;margin-top:20px;">
         <div class="emoji">📚</div>
-        <h3>Chưa có bộ thẻ nào</h3>
+        <h3>Chưa có bộ thẻ từ vựng nào</h3>
         <p>Bấm nút (+) ở góc dưới để tạo bộ thẻ mới hoặc import.</p>
-        <button class="btn btn-primary" data-action="create-deck" style="margin-top:10px;">＋ Tạo bộ thẻ</button>
+        <button class="btn btn-primary" data-action="create-deck" style="margin-top:10px;">＋ Tạo bộ từ vựng</button>
       </div>
     `;
   }
@@ -901,14 +1136,15 @@ import {
   function deckCard(d) {
     const cards = deckCards(d.id);
     const due = dueCards(d.id).length;
+    const isGrammar = d.type === 'grammar';
 
     return `
-      <div class="deck-card-minimal" data-action="open-deck" data-deck="${d.id}">
+      <div class="deck-card-minimal" data-action="open-deck" data-deck="${d.id}" data-type="${d.type || 'vocab'}">
         <div class="deck-min-info">
-          <div class="deck-min-title">${esc(d.title)}</div>
+          <div class="deck-min-title">${isGrammar ? '⛩️ ' : ''}${esc(d.title)}</div>
           <div class="deck-min-meta">
-            <span>⬡ ${cards.length}</span>
-            <span class="deck-min-chip">🕒 ${due > 0 ? due + ' đến hạn' : 'Đã thuộc'}</span>
+            <span>${isGrammar ? '⛩️' : '⬡'} ${cards.length} ${isGrammar ? 'mẫu câu' : 'từ'}</span>
+            <span class="deck-min-chip">🕒 ${due > 0 ? due + ' cần ôn' : 'Đã thuộc'}</span>
           </div>
         </div>
         <div class="deck-min-actions">
@@ -933,6 +1169,10 @@ import {
     state.ui.lastDeckId = d.id;
     save();
 
+    const isGrammar = d.type === 'grammar';
+    routeData.deckType = d.type || 'vocab';
+    const itemUnit = isGrammar ? 'mẫu câu' : 'từ';
+
     const studyMode = routeData.studyMode || 'srs';
     const cards = deckCards(deckId);
     const due = dueCards(deckId).length;
@@ -950,14 +1190,14 @@ import {
           </button>
           <button class="segmented-btn ${studyMode === 'srs' ? 'active' : ''}" data-action="toggle-study-mode" data-mode="srs">
             <span>⚙ Ôn tập ngắt quãng</span>
-            <small>lịch thông minh (${due} từ)</small>
+            <small>lịch thông minh (${due} ${itemUnit})</small>
           </button>
         </div>
 
         <div class="big-stat-card">
           <div class="big-stat-num">${cards.length}</div>
-          <div class="big-stat-label">Tổng số từ</div>
-          <div class="ready-badge">${due > 0 ? `⚡ ${due} từ đến hạn` : '✓ Đã thuộc hết'}</div>
+          <div class="big-stat-label">${isGrammar ? 'Tổng số mẫu câu' : 'Tổng số từ'}</div>
+          <div class="ready-badge">${due > 0 ? `⚡ ${due} ${itemUnit} cần ôn` : '✓ Đã thuộc hết'}</div>
 
           <div class="stat-cols">
             <div>
@@ -978,12 +1218,17 @@ import {
         <div class="study-options-card">
           <div class="study-option-item" data-action="study-deck" data-deck="${d.id}" data-mode="${studyMode}">
             <div class="option-icon-box yellow">🎴</div>
-            <div class="option-text">Học thẻ (${studyMode === 'all' ? 'Tất cả từ' : 'Đến hạn ôn'})</div>
+            <div class="option-text">${isGrammar ? 'Học mẫu câu' : 'Học thẻ'} (${studyMode === 'all' ? `Tất cả ${itemUnit}` : `Đến hạn ôn`})</div>
             <div class="option-arrow">›</div>
           </div>
           <div class="study-option-item" data-action="start-learn" data-deck="${d.id}">
             <div class="option-icon-box teal">📝</div>
-            <div class="option-text">Trắc nghiệm 4 đáp án</div>
+            <div class="option-text">${isGrammar ? 'Luyện tập đoán nghĩa mẫu câu' : 'Trắc nghiệm 4 đáp án'}</div>
+            <div class="option-arrow">›</div>
+          </div>
+          <div class="study-option-item" data-action="quick-add-card" data-deck="${d.id}">
+            <div class="option-icon-box purple" style="background:rgba(168,85,247,0.15);color:#c084fc;">＋</div>
+            <div class="option-text">${isGrammar ? 'Thêm mẫu ngữ pháp mới' : 'Thêm từ mới'}</div>
             <div class="option-arrow">›</div>
           </div>
         </div>
@@ -991,15 +1236,18 @@ import {
         <div class="word-list-section">
           <div class="word-list-head">
             <input type="checkbox" id="selectAllWords" />
-            <label for="selectAllWords">Chọn từ trên trang này</label>
+            <label for="selectAllWords">Chọn ${itemUnit} trên trang này</label>
           </div>
 
           <div class="word-list-container">
             ${cards.map(c => `
               <div class="word-card-item">
-                <div>
-                  <div class="word-card-main">${esc(c.word)}</div>
-                  <div class="word-card-sub">${c.reading ? esc(c.reading) + ' | ' : ''}${esc(c.meaning)}</div>
+                <div style="min-width:0;flex:1;">
+                  <div class="word-card-main ${isGrammar ? 'grammar-single-line' : ''}" style="${isGrammar ? 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' : ''}">${esc(c.word)}</div>
+                  <div class="word-card-sub">
+                    ${isGrammar ? `<strong>${esc(c.meaning)}</strong>` : `${c.reading ? esc(c.reading) + ' | ' : ''}${esc(c.meaning)}`}
+                    ${isGrammar && c.example ? `<div style="font-size:12px;color:#94a3b8;margin-top:3px;">💡 ${esc(c.example)}${c.exampleVi ? ' — ' + esc(c.exampleVi) : ''}</div>` : ''}
+                  </div>
                 </div>
                 <input type="checkbox" class="word-checkbox" data-card="${c.id}" />
               </div>
@@ -1161,6 +1409,8 @@ import {
     const c =
       currentStudyCard();
 
+    const isGrammar = isGrammarCard(c);
+
     const total =
       session.cards.length;
 
@@ -1202,6 +1452,7 @@ import {
                   <span class="srs-status-dot"></span>
                   ${c.srs.status === 'new' ? 'Thẻ mới' : c.srs.status === 'learning' ? 'Đang học' : 'Đã học'}
                 </div>
+                ${isGrammar ? `<span class="badge grammar-badge" style="margin-left:6px;">⛩️ Ngữ pháp</span>` : ''}
 
                 <div class="study-tools">
 
@@ -1227,17 +1478,40 @@ import {
 
               <div class="card-main-content">
 
-                <div class="study-word-single">
-                  ${esc(c.word)}
-                </div>
+                ${isGrammar
+                  ? (() => {
+                      const len = (c.word || '').length;
+                      // Tối ưu kích cỡ chữ to rõ, mạnh mẽ, dễ nhìn nhưng vẫn bảo toàn trên 1 dòng
+                      let fs = 'font-size: clamp(34px, 8.5vw, 56px);';
+                      if (len >= 13) {
+                        fs = 'font-size: clamp(22px, 5.2vw, 36px);';
+                      } else if (len >= 10) {
+                        fs = 'font-size: clamp(25px, 6vw, 42px);';
+                      } else if (len >= 6) {
+                        fs = 'font-size: clamp(28px, 7vw, 50px);';
+                      }
+                      return `<div class="study-word-single grammar-single-line" style="${fs}">${esc(c.word)}</div>`;
+                    })()
+                  : `<div class="study-word-single ${c.word.length > 8 ? 'small-word' : ''}">${esc(c.word)}</div>`
+                }
 
-                ${state.settings.furigana === 'always' && c.reading
+                ${!isGrammar && state.settings.furigana === 'always' && c.reading
           ? `<div class="study-reading">${esc(c.reading)}</div>`
           : ''
         }
 
-                ${state.settings.romaji && c.romaji
+                ${!isGrammar && state.settings.romaji && c.romaji
           ? `<div class="study-romaji">${esc(c.romaji)}</div>`
+          : ''
+        }
+
+                ${isGrammar && c.example
+          ? `
+              <div class="grammar-front-example">
+                <div class="ex-label">💡 Ví dụ ngữ cảnh (đoán mẫu):</div>
+                <div class="ex-ja">${esc(c.example)}</div>
+              </div>
+            `
           : ''
         }
 
@@ -1251,7 +1525,7 @@ import {
 
                 <div class="card-tags-inline">
                   ${c.jlpt ? `<span class="badge primary">${esc(c.jlpt)}</span>` : ''}
-                  ${c.pos ? `<span class="badge">${esc(c.pos)}</span>` : ''}
+                  ${c.pos ? `<span class="badge ${isGrammar ? 'grammar-badge' : ''}">${esc(c.pos)}</span>` : ''}
                 </div>
 
                 <div class="study-tools">
@@ -1278,18 +1552,26 @@ import {
 
               <div class="card-main-content back-content">
 
-                ${c.reading ? `<div class="study-reading-inline">【${esc(c.reading)}】</div>` : ''}
-                ${c.romaji ? `<div class="study-romaji-inline">${esc(c.romaji)}</div>` : ''}
+                ${!isGrammar && c.reading ? `<div class="study-reading-inline">【${esc(c.reading)}】</div>` : ''}
+                ${!isGrammar && c.romaji ? `<div class="study-romaji-inline">${esc(c.romaji)}</div>` : ''}
 
-                <div class="study-meaning">
+                ${isGrammar ? `
+                  <div class="grammar-single-line" style="font-size:clamp(22px,5.5vw,36px);font-weight:900;color:#fff;margin-bottom:8px;">
+                    ${esc(c.word)}
+                  </div>
+                  <div class="grammar-explain-title">Giải thích mẫu câu</div>
+                ` : ''}
+
+                <div class="study-meaning" style="${isGrammar ? 'font-size:clamp(20px,5vw,28px);margin-bottom:12px;font-weight:800;color:#38bdf8;' : ''}">
                   ${esc(c.meaning)}
                 </div>
 
                 ${c.example
                   ? `
                       <div class="study-example-box">
-                        <div class="ex-ja">${esc(c.example)}</div>
-                        ${c.exampleVi ? `<div class="ex-vi">${esc(c.exampleVi)}</div>` : ''}
+                        ${isGrammar ? `<div class="grammar-explain-title" style="color:var(--muted);font-size:11px;">Đối chiếu ví dụ</div>` : ''}
+                        <div class="ex-ja" style="${isGrammar ? 'font-size:clamp(15px,4.2vw,18px);' : ''}">${esc(c.example)}</div>
+                        ${c.exampleVi ? `<div class="ex-vi" style="${isGrammar ? 'color:#a5f3fc;font-weight:600;margin-top:6px;font-size:clamp(14px,3.8vw,16px);' : ''}">${esc(c.exampleVi)}</div>` : ''}
                       </div>
                     `
                   : ''
@@ -2040,31 +2322,37 @@ import {
 
   function deckSelect(
     id,
-    selected
+    selected,
+    filterType = null
   ) {
+    let list = state.decks;
+    if (filterType === 'grammar') {
+      list = state.decks.filter(d => d.type === 'grammar');
+    } else if (filterType === 'vocab') {
+      list = state.decks.filter(d => d.type !== 'grammar');
+    }
+
+    const options = list.map(
+      d => `
+        <option
+          value="${d.id}"
+          ${d.id === selected ? 'selected' : ''}
+        >
+          ${d.type === 'grammar' ? '⛩️ ' : '🗂️ '}${esc(d.title)} (${deckCards(d.id).length} ${d.type === 'grammar' ? 'mẫu câu' : 'từ'})
+        </option>
+      `
+    );
+
+    if (filterType === 'grammar') {
+      options.push(`<option value="new_grammar" ${!list.length ? 'selected' : ''}>＋ Tạo bộ ngữ pháp mới khi import</option>`);
+    }
 
     return `
       <select
         id="${id}"
         class="select"
       >
-
-        ${state.decks.map(
-      d => `
-              <option
-                value="${d.id}"
-                ${d.id === selected
-          ? 'selected'
-          : ''
-        }
-              >
-                ${esc(d.title)}
-                (${deckCards(d.id).length})
-              </option>
-            `
-    ).join('')
-      }
-
+        ${options.join('')}
       </select>
     `;
   }
@@ -2314,7 +2602,7 @@ import {
 
           </div>
 
-          <div class="question-main">
+          <div class="question-main ${isGrammarCard(c) ? 'grammar-single-line' : ''}">
             ${esc(q.prompt)}
           </div>
 
@@ -2687,7 +2975,7 @@ import {
             Chọn nghĩa đúng
           </div>
 
-          <div class="question-main">
+          <div class="question-main ${isGrammarCard(c) ? 'grammar-single-line' : ''}">
             ${esc(q.prompt)}
           </div>
 
@@ -2716,6 +3004,9 @@ import {
 
   function renderImport() {
 
+    const importType = routeData.importType || 'vocab';
+    const isGrammarImport = importType === 'grammar';
+
     const target =
       state.decks.find(
         d =>
@@ -2723,25 +3014,39 @@ import {
           (
             routeData.importDeckId ||
             state.ui.lastDeckId
-          )
+          ) &&
+          (isGrammarImport ? d.type === 'grammar' : d.type !== 'grammar')
       )
+      ||
+      (isGrammarImport ? grammarDecks()[0] : vocabDecks()[0])
       ||
       state.decks[0];
 
     return `
       <div class="page page-narrow">
 
+        <div class="home-segmented-nav" style="margin-bottom:16px;">
+          <button class="home-segmented-btn ${!isGrammarImport ? 'active' : ''}" data-action="switch-import-type" data-type="vocab">
+            <span>🗂️ Nhập Từ vựng</span>
+          </button>
+          <button class="home-segmented-btn ${isGrammarImport ? 'active' : ''}" data-action="switch-import-type" data-type="grammar">
+            <span>⛩️ Nhập Cấu trúc Ngữ pháp</span>
+          </button>
+        </div>
+
         <div class="section-head">
 
           <div>
 
             <h2>
-              Tạo Flashcard nhanh
+              ${isGrammarImport ? 'Nhập Mẫu Cấu Trúc Ngữ Pháp' : 'Tạo Flashcard nhanh'}
             </h2>
 
             <p>
-              Paste text hoặc nạp TXT/CSV/TSV/JSON.
-              Luôn preview trước khi lưu.
+              ${isGrammarImport
+                ? 'Đằng trước: Cấu trúc & ví dụ đoán mẫu. Đằng sau: Giải thích mẫu câu & dịch.'
+                : 'Paste text hoặc nạp TXT/CSV/TSV/JSON. Luôn preview trước khi lưu.'
+              }
             </p>
 
           </div>
@@ -2759,10 +3064,10 @@ import {
               </label>
 
               ${deckSelect(
-      'importDeck',
-      target?.id
-    )
-      }
+                'importDeck',
+                target?.id,
+                isGrammarImport ? 'grammar' : 'vocab'
+              )}
 
             </div>
 
@@ -2778,11 +3083,15 @@ import {
               >
 
                 <option value="auto">
-                  Tự phát hiện
+                  Tự phát hiện (| , TAB, : , - )
                 </option>
 
                 <option value="pipe">
-                  Dấu |
+                  Dấu gạch đứng |
+                </option>
+
+                <option value="colon">
+                  Dấu hai chấm :
                 </option>
 
                 <option value="tab">
@@ -2809,13 +3118,17 @@ import {
           >
 
             <label>
-              Văn bản
+              ${isGrammarImport ? 'Dữ liệu ngữ pháp (Cấu trúc | Giải thích | Ví dụ đoán | Dịch ví dụ)' : 'Văn bản'}
             </label>
 
             <textarea
               id="importText"
               class="textarea"
-              placeholder="食べる | たべる | ăn | N5&#10;飲む | のむ | uống | N5"
+              style="min-height:130px;"
+              placeholder="${isGrammarImport
+                ? '〜てはいけない | Không được làm gì (cấm đoán) | ここでタバコを吸ってはいけません。 | Không được hút thuốc ở đây.&#10;〜たことがある | Đã từng làm gì đó (trải nghiệm) | 日本へ行ったことがありますか。 | Bạn đã từng đi Nhật Bản chưa?&#10;〜ほうがいい | Nên làm gì đó (khuyên nhủ) | 早く寝たほうがいいですよ。 | Bạn nên đi ngủ sớm đi nhé.'
+                : '食べる | たべる | ăn | N5&#10;飲む | のむ | uống | N5'
+              }"
             ></textarea>
 
           </div>
@@ -2861,7 +3174,7 @@ import {
                     <h2>
                       Preview
                       ${importRows.length}
-                      thẻ
+                      ${isGrammarImport ? 'mẫu câu' : 'thẻ'}
                     </h2>
 
                     <p>
@@ -2876,92 +3189,143 @@ import {
                   >
                     Import
                     ${importRows.length}
-                    thẻ
+                    ${isGrammarImport ? 'mẫu câu' : 'thẻ'}
                   </button>
 
                 </div>
 
                 <div class="preview-wrap">
 
-                  <table class="preview-table">
-
-                    <thead>
-
-                      <tr>
-                        <th>Kanji</th>
-                        <th>Hiragana</th>
-                        <th>Âm Hán</th>
-                        <th>Nghĩa</th>
-                        <th>JLPT</th>
-                        <th></th>
-                      </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                      ${importRows.map(
-          (r, i) => `
+                  ${isGrammarImport
+                    ? `
+                        <table class="preview-table">
+                          <thead>
                             <tr>
-
-                              <td>
-                                <input
-                                  data-import-row="${i}"
-                                  data-field="word"
-                                  value="${esc(r.word)}"
-                                >
-                              </td>
-
-                              <td>
-                                <input
-                                  data-import-row="${i}"
-                                  data-field="reading"
-                                  value="${esc(r.reading)}"
-                                >
-                              </td>
-
-                              <td>
-                                <input
-                                  data-import-row="${i}"
-                                  data-field="romaji"
-                                  value="${esc(r.romaji)}"
-                                >
-                              </td>
-
-                              <td>
-                                <input
-                                  data-import-row="${i}"
-                                  data-field="meaning"
-                                  value="${esc(r.meaning)}"
-                                >
-                              </td>
-
-                              <td>
-                                <input
-                                  data-import-row="${i}"
-                                  data-field="jlpt"
-                                  value="${esc(r.jlpt)}"
-                                >
-                              </td>
-
-                              <td>
-                                <button
-                                  class="tiny-btn"
-                                  data-action="remove-import-row"
-                                  data-index="${i}"
-                                >
-                                  ×
-                                </button>
-                              </td>
-
+                              <th style="min-width:140px;">Cấu trúc (Mặt trước)</th>
+                              <th style="min-width:190px;">Ví dụ đoán mẫu (Mặt trước)</th>
+                              <th style="min-width:180px;">Giải thích mẫu (Mặt sau)</th>
+                              <th style="min-width:160px;">Dịch ví dụ (Mặt sau)</th>
+                              <th></th>
                             </tr>
-                          `
-        ).join('')
-        }
-
-                    </tbody>
-
-                  </table>
+                          </thead>
+                          <tbody>
+                            ${importRows.map(
+                              (r, i) => `
+                                <tr>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="word"
+                                      value="${esc(r.word)}"
+                                      placeholder="Cấu trúc"
+                                    >
+                                  </td>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="example"
+                                      value="${esc(r.example || '')}"
+                                      placeholder="Ví dụ tiếng Nhật"
+                                    >
+                                  </td>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="meaning"
+                                      value="${esc(r.meaning)}"
+                                      placeholder="Giải thích ý nghĩa"
+                                    >
+                                  </td>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="exampleVi"
+                                      value="${esc(r.exampleVi || '')}"
+                                      placeholder="Dịch ví dụ"
+                                    >
+                                  </td>
+                                  <td>
+                                    <button
+                                      class="tiny-btn"
+                                      data-action="remove-import-row"
+                                      data-index="${i}"
+                                    >
+                                      ×
+                                    </button>
+                                  </td>
+                                </tr>
+                              `
+                            ).join('')}
+                          </tbody>
+                        </table>
+                      `
+                    : `
+                        <table class="preview-table">
+                          <thead>
+                            <tr>
+                              <th>Kanji</th>
+                              <th>Hiragana</th>
+                              <th>Âm Hán</th>
+                              <th>Nghĩa</th>
+                              <th>JLPT</th>
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${importRows.map(
+                              (r, i) => `
+                                <tr>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="word"
+                                      value="${esc(r.word)}"
+                                    >
+                                  </td>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="reading"
+                                      value="${esc(r.reading)}"
+                                    >
+                                  </td>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="romaji"
+                                      value="${esc(r.romaji)}"
+                                    >
+                                  </td>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="meaning"
+                                      value="${esc(r.meaning)}"
+                                    >
+                                  </td>
+                                  <td>
+                                    <input
+                                      data-import-row="${i}"
+                                      data-field="jlpt"
+                                      value="${esc(r.jlpt)}"
+                                    >
+                                  </td>
+                                  <td>
+                                    <button
+                                      class="tiny-btn"
+                                      data-action="remove-import-row"
+                                      data-index="${i}"
+                                    >
+                                      ×
+                                    </button>
+                                  </td>
+                                </tr>
+                              `
+                            ).join('')}
+                          </tbody>
+                        </table>
+                      `
+                  }
 
                 </div>
 
@@ -2977,13 +3341,14 @@ import {
             <div class="card">
 
               <strong>
-                Smart Text
+                ${isGrammarImport ? 'Đoán mẫu bằng ví dụ' : 'Smart Text'}
               </strong>
 
               <p class="muted small">
-                Hỗ trợ |, TAB, dấu phẩy,
-                dấu gạch và các dòng
-                term/meaning xen kẽ.
+                ${isGrammarImport
+                  ? 'Câu ví dụ tiếng Nhật sẽ xuất hiện ở mặt trước thẻ để người học vừa học vừa suy luận mẫu ngữ pháp.'
+                  : 'Hỗ trợ |, TAB, dấu phẩy, dấu gạch và các dòng term/meaning xen kẽ.'
+                }
               </p>
 
             </div>
@@ -2995,9 +3360,10 @@ import {
               </strong>
 
               <p class="muted small">
-                Khi import sẽ bỏ qua
-                thẻ trùng Japanese +
-                reading trong cùng bộ.
+                ${isGrammarImport
+                  ? 'Tự động bỏ qua các mẫu cấu trúc đã có sẵn trong cùng bộ ngữ pháp.'
+                  : 'Khi import sẽ bỏ qua thẻ trùng Japanese + reading trong cùng bộ.'
+                }
               </p>
 
             </div>
@@ -3005,12 +3371,14 @@ import {
             <div class="card">
 
               <strong>
-                Backup
+                ${isGrammarImport ? 'Học tới khi thuộc' : 'Backup'}
               </strong>
 
               <p class="muted small">
-                Có thể xuất toàn bộ dữ liệu
-                JSON từ Cài đặt.
+                ${isGrammarImport
+                  ? 'Thẻ ngữ pháp áp dụng thuật toán lặp ngắt quãng tới khi thuộc mới được bỏ qua.'
+                  : 'Có thể xuất toàn bộ dữ liệu JSON từ Cài đặt.'
+                }
               </p>
 
             </div>
@@ -3021,6 +3389,84 @@ import {
 
       </div>
     `;
+  }
+
+  function parseGrammarImport(text) {
+    const src = String(text || '').trim();
+    if (!src) return [];
+
+    const lines = src
+      .split(/\r?\n/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const rows = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      if (!line) continue;
+
+      line = line.replace(/^(\d+[\.\)\/]\s*|[-•*]\s*)/, '').trim();
+      if (!line) continue;
+
+      let structure = '';
+      let explanation = '';
+      let example = '';
+      let exampleVi = '';
+
+      if (line.includes('|')) {
+        const parts = line.split('|').map(s => s.trim()).filter(Boolean);
+        structure = parts[0] || '';
+        explanation = parts[1] || '';
+        example = parts[2] || '';
+        exampleVi = parts[3] || '';
+      } else if (line.includes('\t')) {
+        const parts = line.split('\t').map(s => s.trim()).filter(Boolean);
+        structure = parts[0] || '';
+        explanation = parts[1] || '';
+        example = parts[2] || '';
+        exampleVi = parts[3] || '';
+      } else if (line.includes(' : ') || (line.includes(':') && !line.startsWith('http'))) {
+        const colonIdx = line.indexOf(':');
+        structure = line.slice(0, colonIdx).trim();
+        const rest = line.slice(colonIdx + 1).trim();
+        if (rest.includes('|')) {
+          const rParts = rest.split('|').map(s => s.trim()).filter(Boolean);
+          explanation = rParts[0] || '';
+          example = rParts[1] || '';
+          exampleVi = rParts[2] || '';
+        } else {
+          explanation = rest;
+        }
+      } else if (/\s[-–—]\s/.test(line)) {
+        const parts = line.split(/\s[-–—]\s/).map(s => s.trim()).filter(Boolean);
+        structure = parts[0] || '';
+        explanation = parts[1] || '';
+        example = parts[2] || '';
+        exampleVi = parts[3] || '';
+      } else {
+        structure = line;
+        if (i + 1 < lines.length) {
+          explanation = lines[++i];
+        }
+      }
+
+      if (structure && explanation) {
+        rows.push({
+          word: structure,
+          reading: structure,
+          romaji: '',
+          meaning: explanation,
+          jlpt: 'N5',
+          pos: 'ngữ pháp',
+          example: example,
+          exampleVi: exampleVi,
+          tags: ['grammar']
+        });
+      }
+    }
+
+    return rows;
   }
 
   function parseImport(
@@ -3847,26 +4293,48 @@ import {
         modal.deck || {
           title: '',
           description: '',
-          jlpt: 'N5'
+          jlpt: 'N5',
+          type: modal.defaultType || 'vocab'
         };
+
+      const isGrammarDeckForm = (d.type || modal.defaultType) === 'grammar';
 
       return modalWrap(
         modal.deck
-          ? 'Sửa bộ thẻ'
-          : 'Tạo bộ thẻ',
+          ? (isGrammarDeckForm ? 'Sửa bộ ngữ pháp' : 'Sửa bộ thẻ')
+          : (isGrammarDeckForm ? 'Tạo bộ ngữ pháp mới' : 'Tạo bộ thẻ mới'),
         `
           <div class="field">
 
             <label>
-              Tên bộ
+              ${isGrammarDeckForm ? 'Tên bộ ngữ pháp' : 'Tên bộ thẻ'}
             </label>
 
             <input
               id="deckTitle"
               class="input"
               value="${esc(d.title)}"
-              placeholder="VD: JLPT N4 - Bài 1"
+              placeholder="${isGrammarDeckForm ? 'VD: JLPT N5 - Mẫu câu Minna' : 'VD: JLPT N4 - Bài 1'}"
             >
+
+          </div>
+
+          <div
+            class="field"
+            style="margin-top:12px"
+          >
+
+            <label>
+              Phân loại bộ
+            </label>
+
+            <select
+              id="deckType"
+              class="select"
+            >
+              <option value="vocab" ${(d.type || modal.defaultType) !== 'grammar' ? 'selected' : ''}>🗂️ Bộ từ vựng</option>
+              <option value="grammar" ${(d.type || modal.defaultType) === 'grammar' ? 'selected' : ''}>⛩️ Bộ cấu trúc ngữ pháp</option>
+            </select>
 
           </div>
 
@@ -3982,23 +4450,27 @@ import {
           tags: []
         };
 
+      const curDeck = state.decks.find(d => d.id === (modal.deckId || c.deckId));
+      const isGrammarCardForm = curDeck?.type === 'grammar' || c.pos === 'ngữ pháp';
+
       return modalWrap(
         modal.card
-          ? 'Sửa thẻ'
-          : 'Tạo thẻ',
+          ? (isGrammarCardForm ? 'Sửa mẫu ngữ pháp' : 'Sửa thẻ')
+          : (isGrammarCardForm ? 'Tạo mẫu ngữ pháp mới' : 'Tạo thẻ mới'),
         `
           <div class="form-grid">
 
             <div class="field">
 
               <label>
-                Japanese *
+                ${isGrammarCardForm ? 'Cấu trúc ngữ pháp *' : 'Japanese *'}
               </label>
 
               <input
                 id="cardWord"
                 class="input"
                 value="${esc(c.word)}"
+                placeholder="${isGrammarCardForm ? 'VD: 〜てはいけない' : 'VD: 食べる'}"
               >
 
             </div>
@@ -4006,13 +4478,14 @@ import {
             <div class="field">
 
               <label>
-                Reading
+                ${isGrammarCardForm ? 'Cách đọc (Hiragana)' : 'Reading'}
               </label>
 
               <input
                 id="cardReading"
                 class="input"
                 value="${esc(c.reading || '')}"
+                placeholder="${isGrammarCardForm ? 'VD: 〜てはいけない' : 'VD: たべる'}"
               >
 
             </div>
@@ -4020,13 +4493,14 @@ import {
             <div class="field">
 
               <label>
-                Nghĩa *
+                ${isGrammarCardForm ? 'Giải thích mẫu câu *' : 'Nghĩa *'}
               </label>
 
               <input
                 id="cardMeaning"
                 class="input"
                 value="${esc(c.meaning)}"
+                placeholder="${isGrammarCardForm ? 'VD: Không được làm gì (cấm đoán)' : 'VD: ăn'}"
               >
 
             </div>
@@ -4092,7 +4566,7 @@ import {
               <input
                 id="cardPos"
                 class="input"
-                value="${esc(c.pos || '')}"
+                value="${esc(c.pos || (isGrammarCardForm ? 'ngữ pháp' : ''))}"
               >
 
             </div>
@@ -4105,13 +4579,14 @@ import {
           >
 
             <label>
-              Câu ví dụ
+              ${isGrammarCardForm ? '💡 Câu ví dụ tiếng Nhật (Hiện ở mặt trước để đoán mẫu câu)' : 'Câu ví dụ'}
             </label>
 
             <input
               id="cardExample"
               class="input"
               value="${esc(c.example || '')}"
+              placeholder="${isGrammarCardForm ? 'VD: ここでタバコを吸ってはいけません。' : 'VD: 毎朝パンを食べます。'}"
             >
 
           </div>
@@ -4122,13 +4597,14 @@ import {
           >
 
             <label>
-              Dịch câu ví dụ
+              ${isGrammarCardForm ? 'Bản dịch câu ví dụ (Hiện ở mặt sau)' : 'Dịch câu ví dụ'}
             </label>
 
             <input
               id="cardExampleVi"
               class="input"
               value="${esc(c.exampleVi || '')}"
+              placeholder="${isGrammarCardForm ? 'VD: Không được hút thuốc ở đây.' : 'VD: Tôi ăn bánh mì mỗi sáng.'}"
             >
 
           </div>
@@ -4284,17 +4760,26 @@ import {
             <div class="sheet-menu-item" data-action="create-deck">
               <div class="sheet-icon-box yellow">📁</div>
               <div>
-                <div class="sheet-item-title">Tạo bộ thẻ</div>
+                <div class="sheet-item-title">Tạo bộ từ vựng</div>
                 <div class="sheet-item-sub">Tạo mới bộ từ vựng tùy chỉnh</div>
               </div>
               <div class="sheet-item-arrow">›</div>
             </div>
 
-            <div class="sheet-menu-item" data-nav="import">
-              <div class="sheet-icon-box blue">📁</div>
+            <div class="sheet-menu-item" data-action="create-grammar-deck">
+              <div class="sheet-icon-box purple" style="background:rgba(168,85,247,0.2);color:#c084fc;">⛩️</div>
               <div>
-                <div class="sheet-item-title">Nhập Anki</div>
-                <div class="sheet-item-sub">.apkg file</div>
+                <div class="sheet-item-title">Tạo bộ cấu trúc ngữ pháp</div>
+                <div class="sheet-item-sub">Tạo danh mục các mẫu câu ngữ pháp</div>
+              </div>
+              <div class="sheet-item-arrow">›</div>
+            </div>
+
+            <div class="sheet-menu-item" data-action="open-grammar-import">
+              <div class="sheet-icon-box teal" style="background:rgba(56,189,248,0.2);color:#38bdf8;">📥</div>
+              <div>
+                <div class="sheet-item-title">Nhập cấu trúc ngữ pháp</div>
+                <div class="sheet-item-sub">Đằng trước cấu trúc, đằng sau giải thích</div>
               </div>
               <div class="sheet-item-arrow">›</div>
             </div>
@@ -4302,8 +4787,8 @@ import {
             <div class="sheet-menu-item" data-nav="import">
               <div class="sheet-icon-box green">📄</div>
               <div>
-                <div class="sheet-item-title">Nhập từ Quizlet</div>
-                <div class="sheet-item-sub">CSV or TSV</div>
+                <div class="sheet-item-title">Nhập từ vựng (CSV / TSV / Anki)</div>
+                <div class="sheet-item-sub">Dán text hoặc nạp file</div>
               </div>
               <div class="sheet-item-arrow">›</div>
             </div>
@@ -4457,9 +4942,12 @@ import {
 
     speechSynthesis.cancel();
 
+    const textToSpeak =
+      isGrammarCard(c) && c.example ? c.example : c.word;
+
     const u =
       new SpeechSynthesisUtterance(
-        c.word
+        textToSpeak
       );
 
     u.lang =
@@ -4982,6 +5470,23 @@ import {
         }
       );
     }
+
+    fitGrammarSingleLine();
+  }
+
+  function fitGrammarSingleLine() {
+    document.querySelectorAll('.grammar-single-line').forEach(el => {
+      const parent = el.parentElement;
+      if (!parent) return;
+      const maxWidth = parent.clientWidth - 12;
+      if (maxWidth <= 40) return;
+
+      let fs = parseFloat(window.getComputedStyle(el).fontSize);
+      while (el.scrollWidth > maxWidth && fs > 18) {
+        fs -= 0.5;
+        el.style.fontSize = fs + 'px';
+      }
+    });
   }
 
   document.addEventListener(
@@ -5084,7 +5589,35 @@ import {
     ) {
 
       modal = {
-        type: 'deck-form'
+        type: 'deck-form',
+        defaultType: 'vocab'
+      };
+
+      render();
+    }
+
+    else if (
+      a === 'create-grammar-deck'
+    ) {
+
+      modal = {
+        type: 'deck-form',
+        defaultType: 'grammar'
+      };
+
+      render();
+    }
+
+    else if (
+      a === 'open-grammar-import'
+    ) {
+
+      modal = null;
+
+      view = 'import';
+
+      routeData = {
+        importType: 'grammar'
       };
 
       render();
@@ -5129,12 +5662,22 @@ import {
         return;
       }
 
+      const deckTypeEl =
+        document.getElementById('deckType');
+
+      const type =
+        deckTypeEl
+          ? deckTypeEl.value
+          : (modal.deck?.type || modal.defaultType || 'vocab');
+
       if (modal.deck) {
 
         Object.assign(
           modal.deck,
           {
             title,
+
+            type,
 
             description:
               document
@@ -5162,6 +5705,8 @@ import {
           id: uid('deck'),
 
           title,
+
+          type,
 
           description:
             document
@@ -5196,12 +5741,14 @@ import {
 
       modal = null;
 
-      view = 'decks';
+      view = type === 'grammar' ? 'grammar' : 'home';
 
       render();
 
       showToast(
-        'Đã lưu bộ thẻ.'
+        type === 'grammar'
+          ? 'Đã lưu bộ cấu trúc ngữ pháp.'
+          : 'Đã lưu bộ thẻ.'
       );
     }
 
@@ -5212,9 +5759,19 @@ import {
       const id =
         el.dataset.deck;
 
+      const targetDeck =
+        state.decks.find(
+          d => d.id === id
+        );
+
+      const wasGrammar =
+        targetDeck?.type === 'grammar';
+
       if (
         !confirm(
-          'Xóa bộ thẻ và toàn bộ thẻ bên trong?'
+          wasGrammar
+            ? 'Xóa bộ ngữ pháp này và toàn bộ mẫu câu bên trong?'
+            : 'Xóa bộ thẻ và toàn bộ thẻ bên trong?'
         )
       ) {
         return;
@@ -5234,12 +5791,14 @@ import {
 
       modal = null;
 
-      view = 'decks';
+      view = wasGrammar ? 'grammar' : 'home';
 
       render();
 
       showToast(
-        'Đã xóa bộ thẻ.'
+        wasGrammar
+          ? 'Đã xóa bộ ngữ pháp.'
+          : 'Đã xóa bộ thẻ.'
       );
     }
 
@@ -5258,7 +5817,8 @@ import {
     }
 
     else if (
-      a === 'add-card'
+      a === 'add-card' ||
+      a === 'quick-add-card'
     ) {
 
       modal = {
@@ -5322,6 +5882,41 @@ import {
         return;
       }
 
+      const targetDeck =
+        state.decks.find(
+          d => d.id === modal.deckId
+        );
+
+      const isGrammar =
+        targetDeck?.type === 'grammar';
+
+      const posVal =
+        document
+          .getElementById(
+            'cardPos'
+          )
+          ?.value
+          ?.trim();
+
+      const pos =
+        posVal || (isGrammar ? 'ngữ pháp' : '');
+
+      const tags =
+        (document
+          .getElementById(
+            'cardTags'
+          )
+          ?.value || '')
+          .split(',')
+          .map(
+            x => x.trim()
+          )
+          .filter(Boolean);
+
+      if (isGrammar && !tags.includes('grammar')) {
+        tags.push('grammar');
+      }
+
       const data = {
 
         word,
@@ -5351,13 +5946,7 @@ import {
             )
             .value,
 
-        pos:
-          document
-            .getElementById(
-              'cardPos'
-            )
-            .value
-            .trim(),
+        pos,
 
         example:
           document
@@ -5375,17 +5964,7 @@ import {
             .value
             .trim(),
 
-        tags:
-          document
-            .getElementById(
-              'cardTags'
-            )
-            .value
-            .split(',')
-            .map(
-              x => x.trim()
-            )
-            .filter(Boolean),
+        tags,
 
         updatedAt:
           now()
@@ -5439,7 +6018,9 @@ import {
       render();
 
       showToast(
-        'Đã lưu thẻ.'
+        isGrammar
+          ? 'Đã lưu mẫu câu ngữ pháp.'
+          : 'Đã lưu thẻ.'
       );
     }
 
@@ -6120,30 +6701,59 @@ import {
     }
 
     else if (
+      a === 'switch-import-type'
+    ) {
+
+      routeData.importType =
+        el.dataset.type || 'vocab';
+
+      importRows = [];
+
+      render();
+    }
+
+    else if (
       a === 'parse-import'
     ) {
 
-      importRows =
-        parseImport(
-          document
-            .getElementById(
-              'importText'
-            )
-            .value,
+      const isGrammar =
+        routeData.importType === 'grammar';
 
-          document
-            .getElementById(
-              'importMode'
-            )
-            .value
-        );
+      const text =
+        document
+          .getElementById(
+            'importText'
+          )
+          .value;
+
+      if (isGrammar) {
+
+        importRows =
+          parseGrammarImport(
+            text
+          );
+
+      } else {
+
+        importRows =
+          parseImport(
+            text,
+            document
+              .getElementById(
+                'importMode'
+              )
+              ?.value || 'auto'
+          );
+      }
 
       render();
 
       if (!importRows.length) {
 
         showToast(
-          'Không nhận diện được flashcard. Kiểm tra định dạng.'
+          isGrammar
+            ? 'Không nhận diện được mẫu ngữ pháp. Hãy kiểm tra định dạng Cấu trúc | Giải thích | Ví dụ | Dịch'
+            : 'Không nhận diện được flashcard. Kiểm tra định dạng.'
         );
       }
     }
@@ -6164,16 +6774,17 @@ import {
       a === 'commit-import'
     ) {
 
+      const isGrammar =
+        routeData.importType === 'grammar';
+
       let deckId =
         document
           .getElementById(
             'importDeck'
           )
-          ?.value
-        ||
-        state.ui.lastDeckId;
+          ?.value;
 
-      if (!deckId) {
+      if (!deckId || deckId === 'new_grammar' || (!state.decks.some(d => d.id === deckId) && isGrammar)) {
 
         const newDeckId = uid('deck');
         const now_ = new Date();
@@ -6182,8 +6793,9 @@ import {
 
         state.decks.push({
           id: newDeckId,
-          title: `Import ${datePart}`,
-          description: '',
+          title: isGrammar ? `Ngữ pháp mới ${datePart}` : `Import ${datePart}`,
+          type: isGrammar ? 'grammar' : 'vocab',
+          description: isGrammar ? 'Bộ cấu trúc ngữ pháp import' : '',
           jlpt: '',
           createdAt: now(),
           updatedAt: now()
@@ -6191,7 +6803,20 @@ import {
 
         deckId = newDeckId;
         state.ui.lastDeckId = newDeckId;
+
+      } else if (!deckId) {
+
+        deckId =
+          state.ui.lastDeckId;
       }
+
+      const targetDeck =
+        state.decks.find(
+          d => d.id === deckId
+        );
+
+      const isTargetGrammar =
+        targetDeck?.type === 'grammar' || isGrammar;
 
       let added = 0;
 
@@ -6205,7 +6830,7 @@ import {
                 normalizeJapanese(
                   c.word +
                   '|' +
-                  c.reading
+                  (c.reading || '')
                 )
             )
         );
@@ -6217,7 +6842,7 @@ import {
             normalizeJapanese(
               r.word +
               '|' +
-              r.reading
+              (r.reading || '')
             );
 
           if (
@@ -6229,18 +6854,25 @@ import {
             return;
           }
 
+          const tags =
+            Array.isArray(r.tags) ? [...r.tags] : [];
+
+          if (isTargetGrammar && !tags.includes('grammar')) {
+            tags.push('grammar');
+          }
+
           state.cards.push(
             makeCard(
               [
                 r.word,
-                r.reading,
-                r.romaji,
+                r.reading || '',
+                r.romaji || '',
                 r.meaning,
-                r.pos || '',
+                r.pos || (isTargetGrammar ? 'ngữ pháp' : ''),
                 r.jlpt || '',
                 r.example || '',
                 r.exampleVi || '',
-                (r.tags || []).join(',')
+                tags.join(',')
               ],
               deckId
             )
@@ -6259,12 +6891,19 @@ import {
 
       importRows = [];
 
-      routeData = {};
+      routeData = {
+        deckId
+      };
+
+      view =
+        isTargetGrammar
+          ? 'grammar'
+          : 'deck';
 
       render();
 
       showToast(
-        `Đã import ${added} thẻ${dup
+        `Đã import ${added} ${isTargetGrammar ? 'mẫu câu' : 'thẻ'}${dup
           ? ` · bỏ qua ${dup} trùng`
           : ''
         }.`
@@ -6275,14 +6914,30 @@ import {
       a === 'show-import-example'
     ) {
 
-      document
-        .getElementById(
-          'importText'
-        )
-        .value =
-        `食べる | たべる | taberu | ăn | N5
+      if (routeData.importType === 'grammar') {
+
+        document
+          .getElementById(
+            'importText'
+          )
+          .value =
+`〜てはいけない | Không được làm gì (cấm chỉ) | ここでタバコを吸ってはいけません。 | Không được hút thuốc ở đây.
+〜たことがある | Đã từng làm gì (kinh nghiệm) | 日本へ行ったことがあります。 | Tôi đã từng đi Nhật Bản.
+〜ほうがいい | Nên làm gì (khuyên bảo) | 病院へ行ったほうがいいですよ。 | Cậu nên đi đến bệnh viện thì hơn.
+〜なければならない | Phải làm gì (bắt buộc) | 毎日日本語を勉強しなければなりません。 | Hàng ngày phải học tiếng Nhật.
+〜てもいい | Được phép làm gì (cho phép) | 写真を撮ってもいいですか。 | Tôi có thể chụp ảnh được không?`;
+
+      } else {
+
+        document
+          .getElementById(
+            'importText'
+          )
+          .value =
+`食べる | たべる | taberu | ăn | N5
 飲む | のむ | nomu | uống | N5
 学校 | がっこう | gakkou | trường học | N5`;
+      }
     }
 
     else if (
